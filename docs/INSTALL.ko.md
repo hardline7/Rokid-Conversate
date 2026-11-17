@@ -6,12 +6,12 @@
 
 ## 다운로드할 파일
 
-[v0.3.3 릴리스](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.3)의 Assets에서 받으세요.
+[v0.3.4 릴리스](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.4)의 Assets에서 받으세요.
 
 | 파일 | 용도 |
 |---|---|
-| `Rokid-Conversate-v0.3.3-Windows-Setup.zip` | 권장. APK, AI 도우미 소스, 자동 설치 스크립트, 한영 안내가 함께 들어 있습니다. |
-| `Rokid-Conversate-v0.3.3.apk` | APK만 수동 설치할 때 사용합니다. 이것만으로 AI 위젯이 설치되지는 않습니다. |
+| `Rokid-Conversate-v0.3.4-Windows-Setup.zip` | 권장. APK, AI 도우미 소스, 자동 설치 스크립트, 한영 안내가 함께 들어 있습니다. |
+| `Rokid-Conversate-v0.3.4.apk` | APK만 수동 설치할 때 사용합니다. 이것만으로 AI 위젯이 설치되지는 않습니다. |
 | `SHA256SUMS.txt` | 다운로드한 APK와 설치 ZIP의 SHA-256을 확인합니다. |
 
 GitHub가 자동 제공하는 Source code ZIP 대신, **Windows-Setup.zip**을 선택해야 APK가 함께 들어 있습니다.
@@ -73,7 +73,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Install-Conversate.ps1 -Se
 ## APK만 수동 설치
 
 ```powershell
-adb install -r .\Rokid-Conversate-v0.3.3.apk
+adb install -r .\Rokid-Conversate-v0.3.4.apk
 adb shell am start -W -n app.conversate.glass/.meeting.MeetingActivity
 ```
 

@@ -52,7 +52,7 @@ class MeetingStore(
 
     @Synchronized fun saveSettings(input: JSONObject): JSONObject {
         val result = settings()
-        for (name in listOf("captions", "cues", "summaries")) if (input.has(name)) {
+        for (name in listOf("captions", "cues", "summaries", "cueAutoPopup")) if (input.has(name)) {
             require(input.opt(name) is Boolean) { L10n.t("{0} 값은 true 또는 false여야 합니다" , name) }
             result.put(name, input.getBoolean(name))
         }
@@ -272,7 +272,7 @@ class MeetingStore(
     private fun clone(value: JSONObject) = JSONObject(value.toString())
     private fun JSONArray.objects() = (0 until length()).map { getJSONObject(it) }
     private fun defaultSettings() = JSONObject().put("captions", true).put("cues", true).put("summaries", true)
-        .put("fontSize", 16).put("selectedNoteIds", JSONArray())
+        .put("cueAutoPopup", true).put("fontSize", 16).put("selectedNoteIds", JSONArray())
     private fun emptySummary() = JSONObject().put("overview", "").put("conclusions", JSONArray())
         .put("discussion", JSONArray()).put("nextSteps", JSONArray())
 }

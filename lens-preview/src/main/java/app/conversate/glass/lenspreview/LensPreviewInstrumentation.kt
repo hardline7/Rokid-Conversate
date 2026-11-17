@@ -20,7 +20,7 @@ class LensPreviewInstrumentation : Instrumentation() {
         try {
             val directory = File(targetContext.filesDir, "lens-previews").apply { mkdirs() }
             val catalog = JSONObject(targetContext.assets.open("companion/messages.json").bufferedReader().use { it.readText() })
-            val cases = listOf("idle", "summary", "history", "captions-off", "paused", "cue", "notes", "empty", "confirm", "offline", "large", "long", "cue-only", "cue-only-captions-off", "stop-confirm", "empty-notes", "empty-cues", "long-notes")
+            val cases = listOf("idle", "summary", "history", "captions-off", "paused", "cue", "notes", "empty", "confirm", "offline", "large", "long", "cue-only", "cue-only-captions-off", "stop-confirm", "empty-notes", "empty-cues", "long-notes", "concept-popup", "concept-detail", "concept-popup-off")
             var rendered = 0
             for (language in listOf("ko-KR", "en-US")) {
                 L10n.initialize(catalog, null, language)
@@ -92,6 +92,14 @@ class LensPreviewInstrumentation : Instrumentation() {
             .put("liveSummaryStatus", L10n.t("발화 묶음 대기"))
             .put("view", when (name) { "cue", "empty-cues" -> 1; "notes", "empty-notes", "long-notes" -> 2; else -> 0 })
             .put("liveIndex", if (name == "history") 0 else -1).put("cueIndex", 0).put("prepIndex", 0)
+        if (name.startsWith("concept-")) {
+            val concept = JSONObject().put("type", "Concepts").put("title", "RAG").put("body", if (ko) "검색한 문서를 참고해 AI 답변을 생성하는 방식입니다." else "AI generates an answer using retrieved documents as supporting context.")
+                .put("shownAt", now).put("sourceKind", "modelKnowledge").put("utteranceId", "synthetic-u1")
+                .put("triggerQuote", if (ko) "이번 AI 검색 시스템에 RAG를 적용합시다." else "Let's apply RAG to our AI search system.")
+            state.put("currentCue", concept)
+            if (name == "concept-detail") { session.put("cues", JSONArray().put(concept)); state.put("view", 1) }
+            if (name == "concept-popup-off") settings.put("cueAutoPopup", false)
+        }
         if (name == "confirm") state.put("confirmation", "start")
         if (name == "stop-confirm") state.put("confirmation", "stop")
         if (name.startsWith("cue-only")) state.put("currentCue", cue.put("shownAt", now))

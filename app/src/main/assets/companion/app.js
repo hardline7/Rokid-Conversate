@@ -54,6 +54,8 @@ function renderCue(container, cue, historyView = false) {
   container.replaceChildren();
   if (!cue) { container.append(node('p', 'empty', tr("대화에 도움이 되는 정보가\n필요한 순간에 표시됩니다."))); return; }
   container.append(node('span', 'cue-tag', cueNames[cue.type] || cue.type || 'Cue'), node('h3', '', cue.title || ''), node('p', '', cue.body || ''));
+  if (cue.sourceKind === 'modelKnowledge') container.append(node('p', 'cue-source', tr("Rokid AI · 일반 지식")));
+  if (historyView && cue.triggerQuote) container.append(node('blockquote', '', tr("용어가 나온 발화: {0}", cue.triggerQuote)));
   if (cue.sourceTitle || cue.sourceId) container.append(node('p', 'cue-source', tr("자료: {0}" , cue.sourceTitle || cue.sourceId)));
   if (historyView && cue.quote) container.append(node('blockquote', '', cue.quote));
 }
@@ -155,6 +157,7 @@ function renderGroupSummaries(host, cards) {
 function fillSettings(settings) {
   $('setting-captions').checked = settings.captions !== false;
   $('setting-cues').checked = settings.cues !== false;
+  $('setting-cue-popup').checked = settings.cueAutoPopup !== false;
   $('setting-summaries').checked = settings.summaries !== false;
   $('setting-font').value = String(settings.fontSize || 16);
 }
@@ -343,7 +346,7 @@ $('file-upload').addEventListener('change', event => run(async () => {
 let searchTimer; $('history-search').addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => run(loadSessions), 300); });
 $('settings-form').addEventListener('submit', event => {
   event.preventDefault(); run(async () => {
-    await api('/api/settings', { method: 'POST', body: { ...(app.state?.settings || {}), captions: $('setting-captions').checked, cues: $('setting-cues').checked, summaries: $('setting-summaries').checked, fontSize: Number($('setting-font').value) } });
+    await api('/api/settings', { method: 'POST', body: { ...(app.state?.settings || {}), captions: $('setting-captions').checked, cues: $('setting-cues').checked, cueAutoPopup: $('setting-cue-popup').checked, summaries: $('setting-summaries').checked, fontSize: Number($('setting-font').value) } });
     await refreshState(); toast(tr("설정을 저장했습니다."));
   }, event.currentTarget.querySelector('button[type=submit]'));
 });

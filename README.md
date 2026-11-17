@@ -10,7 +10,7 @@ Rokid Conversate는 Rokid Glasses의 기본 음성 인식과 Rokid AI를 연결�
 
 핵심은 자막을 계속 읽게 만드는 것이 아닙니다. **대화에 집중하면서 상단의 짧은 요약을 확인하고, 놓친 흐름은 안경테를 쓸어 다시 읽는 것**입니다. 실시간 전사는 필요할 때 켜고 끌 수 있습니다.
 
-> 현재 버전: **0.3.3-lifecycle** · Android 네이티브 앱 + 로컬 웹 관리 화면 + Rokid AIUI 도우미 위젯. 독립적인 비공식 프로젝트이며 Even Realities 또는 Rokid의 공식 제품·제휴 앱은 아닙니다. Conversate의 핵심 사용 경험을 Rokid에 재구현한 것으로, 원제품과의 모든 기능·성능 동등성을 주장하지 않습니다.
+> 현재 버전: **0.3.4-concepts** · Android 네이티브 앱 + 로컬 웹 관리 화면 + Rokid AIUI 도우미 위젯. 독립적인 비공식 프로젝트이며 Even Realities 또는 Rokid의 공식 제품·제휴 앱은 아닙니다. Conversate의 핵심 사용 경험을 Rokid에 재구현한 것으로, 원제품과의 모든 기능·성능 동등성을 주장하지 않습니다.
 
 ## 외부 AI API 키 없이, 로컬 앱과 Rokid AI로
 
@@ -20,6 +20,19 @@ Rokid Conversate는 Rokid Glasses의 기본 음성 인식과 Rokid AI를 연결�
 
 > **현재는 개발자 설치 프리뷰입니다. APK 단독으로 AI 도우미를 최초 설치할 수는 없습니다.** Windows 설치 ZIP도 ADB·Node.js 준비가 필요한 개발 배포 경로입니다. [APK 단독 설치가 막히는 이유와 공식 배포 대안](docs/SETUP-LIMITS.md)을 확인하세요.
 
+## 대화에 나온 전문 용어를, 필요한 순간에
+
+**RAG 같은 새 용어가 나오면 Rokid AI가 맥락에 맞는 풀이를 요약 아래 잠시 표시합니다.** 설명을 찾아보느라 대화를 끊지 않고 흐름을 따라가도록 돕는 기능입니다. 요약 생성과 독립적으로 작동하며 같은 개념은 반복해서 띄우지 않습니다. 한 번 탭해 AI Cue 상세로 이동하고, 스와이프로 이전·다음 Cue를 다시 볼 수 있습니다. 자동 표시를 꺼도 Cue 목록은 보관됩니다.
+
+설명은 Rokid 언어를 따르고, 실제 발화에 있는 용어와 정확한 언급 구절을 검증합니다. 모델의 일반 지식 풀이이며 실시간 웹 검색으로 검증된 결과는 아닙니다. [G2 공식 자료 조사·구현·검증·제한](docs/CONCEPT-CUES.md)
+
+아래는 실제 네이티브 화면을 합성 데이터로 렌더한 예시입니다.
+
+| 자동 표시 · Auto pop-up | 상세 · Detail | 자동 표시 꺼짐 · Pop-up off |
+|---|---|---|
+| ![한국어 용어 자동 표시](docs/assets/lens-ko-concept-popup.png) | ![한국어 용어 상세](docs/assets/lens-ko-concept-detail.png) | ![한국어 자동 표시 꺼짐](docs/assets/lens-ko-concept-popup-off.png) |
+| ![English concept pop-up](docs/assets/lens-en-concept-popup.png) | ![English concept detail](docs/assets/lens-en-concept-detail.png) | ![English pop-up disabled](docs/assets/lens-en-concept-popup-off.png) |
+
 ## 앱을 열었을 때만 회의 기능 실행
 
 메뉴에서 Conversate를 열면 음성 인식 서비스 연결·웹 관리 화면·AI 작업 연결이 시작됩니다. 홈으로 나가거나 앱 화면이 닫히면 인식을 중지하고 기록을 보존한 뒤 서비스를 종료합니다. **종료 후 30초마다 점검하거나 AI 작업을 조회하지 않습니다.** 웹 관리 화면도 앱을 다시 열 때까지 접속되지 않으며 PIN은 다시 확인해야 합니다.
@@ -28,13 +41,13 @@ Rokid Conversate는 Rokid Glasses의 기본 음성 인식과 Rokid AI를 연결�
 
 ## 빌드 없이 바로 설치하기
 
-**[v0.3.3 프리뷰 다운로드](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.3)** · [한국어 설치 안내](docs/INSTALL.ko.md) · [English setup guide](docs/INSTALL.en.md)
+**[v0.3.4 프리뷰 다운로드](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.4)** · [한국어 설치 안내](docs/INSTALL.ko.md) · [English setup guide](docs/INSTALL.en.md)
 
 | 다운로드 | 용도 |
 |---|---|
-| [Windows Setup ZIP](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.3/Rokid-Conversate-v0.3.3-Windows-Setup.zip) | **권장:** APK + AI 도우미 + 자동 설치 스크립트 + 한영 안내 |
-| [APK](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.3/Rokid-Conversate-v0.3.3.apk) | APK만 직접 설치할 때. AI 도우미는 별도 설치 필요 |
-| [SHA256SUMS.txt](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.3/SHA256SUMS.txt) | 다운로드 파일 검증 |
+| [Windows Setup ZIP](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.4/Rokid-Conversate-v0.3.4-Windows-Setup.zip) | **권장:** APK + AI 도우미 + 자동 설치 스크립트 + 한영 안내 |
+| [APK](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.4/Rokid-Conversate-v0.3.4.apk) | APK만 직접 설치할 때. AI 도우미는 별도 설치 필요 |
+| [SHA256SUMS.txt](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.4/SHA256SUMS.txt) | 다운로드 파일 검증 |
 
 Windows에서 **ADB와 Node.js 20+**를 준비하고 ZIP을 완전히 푼 뒤 해당 폴더에서 실행합니다. Android Studio·JDK·앱 빌드는 필요 없습니다.
 
@@ -55,7 +68,7 @@ PC에서 터미널 명령을 실행할 수 있는 **Codex, Claude Code 같은 AI
 설치 방법만 설명하고 끝내지 말고, 실행 가능한 작업은 직접 진행해 줘.
 
 프로젝트: https://github.com/hardline7/Rokid-Conversate
-설치할 배포본: https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.3
+설치할 배포본: https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.4
 설치 안내: 저장소의 docs/INSTALL.ko.md
 설치 한계: 저장소의 docs/SETUP-LIMITS.md
 
@@ -65,7 +78,7 @@ PC에서 터미널 명령을 실행할 수 있는 **Codex, Claude Code 같은 AI
 2. Windows라면 ADB Platform-Tools와 Node.js 20+/npm이 없을 때 공식 배포처에서
    필요한 도구만 준비해 줘. 다른 OS라면 설치 가이드의 검증 범위를 확인하고,
    Windows 전용 스크립트가 그대로 동작한다고 가정하지 마.
-3. 공개 v0.3.3 릴리스의 Rokid-Conversate-v0.3.3-Windows-Setup.zip과
+3. 공개 v0.3.4 릴리스의 Rokid-Conversate-v0.3.4-Windows-Setup.zip과
    SHA256SUMS.txt를 받아
    ZIP의 SHA-256을 확인한 뒤 별도의 작업 폴더에 완전히 풀어.
    GitHub의 자동 생성 Source code ZIP을 설치 패키지로 착각하지 마.
@@ -93,7 +106,7 @@ PC에서 터미널 명령을 실행할 수 있는 **Codex, Claude Code 같은 AI
 별도 외부 AI API 키는 없지만 Rokid 자체 폰·서비스 통신은 필요할 수 있어.
 ```
 
-이 설치 프롬프트는 현재 공개된 **v0.3.3 프리뷰**를 대상으로 합니다. 최신 main 소스를 임의로 빌드해 배포 APK 대신 설치하지 않도록 버전을 고정했습니다.
+이 설치 프롬프트는 현재 공개된 **v0.3.4 프리뷰**를 대상으로 합니다. 최신 main 소스를 임의로 빌드해 배포 APK 대신 설치하지 않도록 버전을 고정했습니다.
 
 ## 한눈에 보는 기능
 
@@ -351,7 +364,7 @@ PIN은 서비스가 다시 시작되면 바뀝니다. README에 고정 PIN은 �
 
 ## 검증 상태
 
-현재 **34개 JVM 테스트와 Android lint·빌드**를 통과했습니다. v0.3.3은 언어 처리 보완과 새 렌즈 디자인을 포함합니다. 실제 장치의 폰트로 한국어·영어 36가지 상태를 렌더링하고 단색·안전 영역을 검사했습니다. 실제 장치에서 STT 수신, 시작·일시정지·재개·종료, AI 응답, 상단 요약 표시·저장, HTTPS 관리와 기존 기록 보존을 확인했습니다. 웹은 PC·모바일에서 전체 전사 스크롤, 영어 UI와 일본어 문구 갱신을 검사했습니다. 실제 Rokid AI의 일본어·스페인어 번역 응답도 확인했습니다.
+현재 **34개 JVM 테스트와 Android lint·빌드**를 통과했습니다. v0.3.4은 언어 처리 보완과 새 렌즈 디자인을 포함합니다. 실제 장치의 폰트로 한국어·영어 36가지 상태를 렌더링하고 단색·안전 영역을 검사했습니다. 실제 장치에서 STT 수신, 시작·일시정지·재개·종료, AI 응답, 상단 요약 표시·저장, HTTPS 관리와 기존 기록 보존을 확인했습니다. 웹은 PC·모바일에서 전체 전사 스크롤, 영어 UI와 일본어 문구 갱신을 검사했습니다. 실제 Rokid AI의 일본어·스페인어 번역 응답도 확인했습니다.
 
 다음 항목까지 완료한 것은 아닙니다.
 

@@ -5,7 +5,7 @@ import argparse, base64, http.cookiejar, json, pathlib, ssl, time, urllib.reques
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--pin', required=True)
-parser.add_argument('--phase', choices=['setup', 'state', 'stop', 'history', 'cleanup', 'ai-test', 'pdf-test', 'recap-test', 'lifecycle'], default='state')
+parser.add_argument('--phase', choices=['setup', 'state', 'stop', 'history', 'cleanup', 'ai-test', 'concept-test', 'pdf-test', 'recap-test', 'lifecycle'], default='state')
 args = parser.parse_args()
 root = pathlib.Path(__file__).parent / 'out' / 'meeting'
 root.mkdir(parents=True, exist_ok=True)
@@ -63,16 +63,16 @@ elif args.phase == 'cleanup':
     request('/api/settings','POST',saved['originalSettings'])
     for id in saved['notes']: request('/api/notes/'+id,'DELETE')
     print('synthetic prep notes removed; original settings restored; test meeting retained')
-elif args.phase == 'ai-test':
+elif args.phase in ('ai-test', 'concept-test'):
     state = request('/api/state')
     assert state['ai']['available'], state['ai']
-    request('/api/action','POST',{'action':'testAi'})
+    request('/api/action','POST',{'action':'testConceptCue' if args.phase=='concept-test' else 'testAi'})
     deadline = time.monotonic()+20
     while time.monotonic()<deadline:
         state=request('/api/state')
         result=state['ai'].get('test',{})
         if result.get('status')!='pending':
-            (root/'ai-connection-test.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
+            (root/('concept-cue-test.json' if args.phase=='concept-test' else 'ai-connection-test.json')).write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
             print(json.dumps(result,ensure_ascii=False))
             assert result['status']=='passed', result
             assert '\ufffd' not in json.dumps(result,ensure_ascii=False)

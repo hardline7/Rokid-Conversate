@@ -6,13 +6,15 @@ const path = require('node:path');
 const {chromium} = require('playwright');
 const assets = path.resolve(__dirname, '../app/src/main/assets/companion');
 const english = JSON.parse(fs.readFileSync(path.join(assets,'messages.json'),'utf8'));
+let settings={captions:true,cues:true,summaries:true,cueAutoPopup:true};
 let locale = {tag:'en-US',revision:1,messages:english};
 const active = {id:'locale-test',title:'사용자가 입력한 회의 제목',status:'running',createdAt:Date.now(),utterances:[{id:'u1',text:'회의 원문은 번역하거나 변경하지 않습니다.'}]};
 const server = http.createServer((req,res)=>{
   const json = obj => {res.setHeader('Content-Type','application/json');res.end(JSON.stringify(obj));};
   if(req.url==='/locale') return json(locale);
   if(req.url==='/locale.js'){res.setHeader('Content-Type','application/javascript');return res.end('globalThis.ConversateLocale='+JSON.stringify(locale)+';\n'+fs.readFileSync(path.join(assets,'i18n.js'),'utf8'));}
-  if(req.url==='/api/state') return json({active,settings:{},sttConnected:true,ai:{available:false},languageTag:locale.tag});
+  if(req.url==='/api/settings' && req.method==='POST') { let text='';req.on('data',chunk=>text+=chunk);req.on('end',()=>{settings=JSON.parse(text);json(settings);});return; }
+  if(req.url==='/api/state') return json({active,currentCue:{type:'Concepts',title:'RAG',body:'Retrieval-augmented generation',sourceKind:'modelKnowledge'},settings,sttConnected:true,ai:{available:false},languageTag:locale.tag});
   if(req.url==='/api/sessions/locale-test') return json(active);
   if(req.url==='/api/notes') return json({notes:[]});
   if(req.url==='/api/sessions') return json({sessions:[]});
@@ -26,6 +28,7 @@ const server = http.createServer((req,res)=>{
   const browser=await chromium.launch({channel:process.env.PLAYWRIGHT_CHANNEL || undefined,headless:true});
   try{
     for(const width of [1400,390]){
+      settings={captions:true,cues:true,summaries:true,cueAutoPopup:true};
       locale={tag:'en-US',revision:1,messages:english};
       const page=await browser.newPage({viewport:{width,height:1000}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
       await page.goto(`http://127.0.0.1:${server.address().port}/`);
@@ -33,10 +36,16 @@ const server = http.createServer((req,res)=>{
       assert.equal(await page.locator('html').getAttribute('lang'),'en-US');
       assert.equal(await page.locator('[data-row-key="row:u1"]').textContent(),active.utterances[0].text);
       assert.equal(await page.locator('#meeting-title').textContent(),active.title);
+      assert.ok((await page.locator('#current-cue').textContent()).includes('Rokid AI · General knowledge'));
       await page.locator('[data-page=settings]').click();
+      assert.equal(await page.locator('#setting-cue-popup').isChecked(),true);
+      await page.locator('#setting-cue-popup').uncheck();
+      const saved=page.waitForRequest(r=>r.url().endsWith('/api/settings')&&r.method()==='POST');
+      await page.locator('#settings-form button[type=submit]').click();
+      const body=(await saved).postDataJSON();assert.equal(body.cueAutoPopup,false);assert.equal(body.cues,true);
       assert.equal(await page.locator('#setting-font option[value="14"]').textContent(),'Small · 14');
-      const settings=await page.locator('#page-settings').textContent();
-      assert.ok(!/[가-힣]/.test(settings),'Untranslated Korean UI remained in English settings');
+      const settingsText=await page.locator('#page-settings').textContent();
+      assert.ok(!/[가-힣]/.test(settingsText),'Untranslated Korean UI remained in English settings');
       if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)) console.log(await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth,body:document.body.scrollWidth})), await page.evaluate(()=>[...document.querySelectorAll('*')].filter(el=>el.getBoundingClientRect().right>innerWidth).map(el=>({tag:el.tagName,id:el.id,cls:el.className,right:el.getBoundingClientRect().right})).slice(-12)));
       await page.screenshot({path:`tools/out/meeting/locale-debug-${width}.png`,fullPage:true});
       assert.ok(!(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)),'English mobile overflow');

@@ -322,5 +322,10 @@
   "대화가 정리되면 여기에 표시됩니다.": "Your next summary will appear here.",
   "용어": "Term",
   "자료 {0}/{1}": "Note {0}/{1}",
-  "탭하여 Cue와 자료 보기": "Tap for cues and notes"
+  "탭하여 Cue와 자료 보기": "Tap for cues and notes",
+  "Rokid AI · 일반 지식": "Rokid AI · General knowledge",
+  "Cue 자동 표시": "Cue auto pop-up",
+  "새 용어 풀이와 도움말을 요약 아래 잠시 표시합니다. 꺼도 AI Cue 목록에 보관됩니다.": "Briefly show new concept explanations and cues below the summary. Cues remain in AI Cue history when disabled.",
+  "자동 표시": "Auto pop-up",
+  "용어가 나온 발화: {0}": "Mentioned in: {0}"
 }

@@ -22,8 +22,8 @@ android {
         // The glasses run Android 12 (API 32). Targeting the device's own level
         // keeps runtime behavior identical to what we measure on it.
         targetSdk = 32
-        versionCode = 8
-        versionName = "0.3.3-lifecycle"
+        versionCode = 9
+        versionName = "0.3.4-concepts"
     }
 
     compileOptions {

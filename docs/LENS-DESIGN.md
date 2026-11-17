@@ -26,7 +26,7 @@ adb install -r lens-preview/build/outputs/apk/debug/lens-preview-debug.apk
 adb shell am instrument -w app.conversate.glass.lenspreview/.LensPreviewInstrumentation
 ```
 
-Expected result: `rendered=36`, `INSTRUMENTATION_CODE: -1`, and no `error` result. ADB can return a successful shell exit even if instrumentation reports an error; inspect the result text.
+Expected result: `rendered=42`, `INSTRUMENTATION_CODE: -1`, and no `error` result. ADB can return a successful shell exit even if instrumentation reports an error; inspect the result text.
 
 Cases cover Korean/English ready, summary, older summary, captions off, pause, cue history, notes, waiting, confirmation, offline, large text, maximum text, cue-only, cue-only with captions off, end confirmation, empty lists and a 140-character notes page. Checks require green-only pixels, nonempty rendering and no light outside the safe rectangle or against its lower clipping edge.
 
@@ -41,3 +41,7 @@ Do not uninstall the actual meeting app. The normal release build excludes this 
 ## Limits
 
 Native raster checks and screenshot review do not measure perceived brightness through the optics, comfort over a long meeting, battery performance or every translated label. Those still need wear testing. Meeting control gestures and STT/AI integration remain the existing implementation; this update does not add APK-only AI helper provisioning.
+
+## v0.3.4 concept cues
+
+Added Korean/English concept-popup, concept-detail and concept-popup-off fixtures (42 cases total). See [concept cue behavior](CONCEPT-CUES.md). Source-linked model explanations appear under the summary; AI Cue shows the full explanation and model-knowledge label.

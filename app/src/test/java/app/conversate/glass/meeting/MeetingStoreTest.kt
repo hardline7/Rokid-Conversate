@@ -18,6 +18,16 @@ class MeetingStoreTest {
     private fun event(text: String, id: String = "0:1:1", at: Long = 1000) = JSONObject()
         .put("id", id).put("text", text).put("at", at).put("audioPath", "1").put("number", 1).put("final", true)
 
+    @Test fun cuePopupPreferenceIsPersistentAndSeparateFromCueGeneration() = withDirectory { directory ->
+        val store = MeetingStore(directory, key)
+        assertTrue(store.settings().getBoolean("cueAutoPopup"))
+        store.saveSettings(JSONObject().put("cueAutoPopup", false))
+        val restored = MeetingStore(directory, key).settings()
+        assertFalse(restored.getBoolean("cueAutoPopup"))
+        assertTrue(restored.getBoolean("cues"))
+        assertThrows(Exception::class.java) { store.saveSettings(JSONObject().put("cueAutoPopup", "false")) }
+    }
+
     @Test fun encryptionRejectsTamperingAndCrossRecordReplay() {
         val vault = Vault(key)
         val first = vault.seal("비밀 회의 자료", "note:a")

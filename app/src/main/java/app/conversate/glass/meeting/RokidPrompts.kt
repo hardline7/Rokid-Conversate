@@ -18,11 +18,17 @@ object RokidPrompts {
             "using only an established standard definition with confidence at least0.9. Never guess what a phonetic ASR fragment means. If the term is ambiguous or the definition would merely say a particular system or a term mentioned in the meeting, terms MUST be empty. Ignore ordinary words, names and unclear ASR. " +
             "Otherwise terms MUST be empty. The summary must summarize the group, not merely repeat its last sentence."
         else if (task == "cue") common +
-            "Return {\"cue\":null} unless a cue is immediately useful for the most recent utterance. Otherwise return " +
-            "{\"cue\":{\"type\":\"Answers|Bios|Concepts|Suggestions\",\"title\":\"maximum16characters\",\"body\":\"maximum36characters\",\"confidence\":0.0,\"sourceId\":\"\",\"quote\":\"\"}}. " +
-            "Answers and Bios MUST cite a provided note id and verbatim quote that directly supports the entire cue. " +
-            "Every numeral in an Answers/Bios body must occur in that quote. Bios only for people actually in notes. " +
-            "Prefer Answers, then Bios, Concepts, Suggestions. Use concise noun phrases. If confidence below0.8 return null."
+            "Analyze only NEW utterances; context is preceding speech for disambiguation, never a new trigger. " +
+            "Return {\"cue\":null} for ordinary words, small talk, already-explained terms in seenConcepts, or when nothing helps right now. Otherwise return " +
+            "{\"cue\":{\"type\":\"Concepts|Answers|Bios|Suggestions\",\"title\":\"maximum16characters\",\"body\":\"maximum72characters\",\"confidence\":0.0,\"sourceId\":\"\",\"quote\":\"\",\"utteranceId\":\"\",\"triggerTerm\":\"\",\"triggerQuote\":\"\"}}. " +
+            "Prefer explaining ONE newly mentioned specialized concept or acronym when its established meaning is unambiguous in this context. " +
+            "For Concepts, title and triggerTerm must be the SAME VERBATIM term in a NEW utterance (preserve original spelling), " +
+            "utteranceId must be that utterance's exact id, triggerQuote a short exact excerpt containing that term. " +
+            "Explain its established meaning in plain language, optionally why it matters here. Confidence must be >=0.9. " +
+            "Do not guess phonetic ASR, infer private company jargon, explain ordinary words, or invent recent facts. " +
+            "Concept definitions are general model knowledge, not verified web research or facts stated by the speaker. " +
+            "For Answers and Bios, cite a provided note id and an exact quote supporting the ENTIRE body; every numeral must occur in that quote. " +
+            "Bios only for people in the supplied notes. Suggestions must be clearly phrased as suggestions. Below0.8 confidence return null."
         else common + "Summarize ONLY the supplied actual utterances. They may be noisy or unrelated ASR; acknowledge uncertainty. Return " +
             "{\"title\":\"specific meeting title, maximum80characters\",\"summary\":{\"overview\":\"\",\"conclusions\":[],\"discussion\":[],\"nextSteps\":[]}}. " +
             "Each array contains strings. Keep decisions separate from proposals; only include actual commitments in nextSteps. " +

@@ -144,6 +144,9 @@ class MeetingLensView(context: Context) : View(context) {
             }
             centered(canvas, label, left + 68f, 107f, 18f, if (index == view) 245 else 110, 120f, bold = index == view)
         }
+        if (view != 1 && snapshot.optJSONObject("currentCue") != null) {
+            fill(220); canvas.drawCircle(305f, 92f, 3f, chrome)
+        }
         when (view) {
             0 -> drawConversation(canvas, session, paused)
             1 -> drawCueHistory(canvas, session)
@@ -154,8 +157,11 @@ class MeetingLensView(context: Context) : View(context) {
     private fun drawConversation(canvas: Canvas, session: JSONObject, paused: Boolean) {
         val settings = snapshot.optJSONObject("settings") ?: JSONObject()
         val cue = snapshot.optJSONObject("currentCue")
-        if (settings.optBoolean("summaries", true)) drawLiveSummary(canvas, session)
-        else if (!paused && settings.optBoolean("cues", true) && cue != null) {
+        if (settings.optBoolean("summaries", true)) {
+            drawLiveSummary(canvas, session)
+            if (settings.optBoolean("cueAutoPopup", true) && !paused && snapshot.optInt("liveIndex", -1) < 0 && cue != null) drawInlineCue(canvas, cue)
+        }
+        else if (!paused && settings.optBoolean("cues", true) && settings.optBoolean("cueAutoPopup", true) && cue != null) {
             val age = (System.currentTimeMillis() - cue.optLong("shownAt", cue.optLong("at", System.currentTimeMillis()))).coerceAtLeast(0)
             val opacity = when { age < 8000 -> 255; age < 9000 -> ((9000 - age) * 255 / 1000).toInt(); else -> 0 }
             if (opacity > 0) drawCue(canvas, cue, opacity, compact = true)
@@ -222,7 +228,9 @@ class MeetingLensView(context: Context) : View(context) {
         lines(canvas, body, 42f, 238f, size, 396f, 4, 235, lineHeight = 1.18f)
         // One narrow accent, not a filled panel, keeps the outside world visible.
         stroke(205, 2.2f); canvas.drawLine(25f, 185f, 25f, 211f, chrome)
-        if (snapshot.optJSONObject("settings")?.optBoolean("cues", true) == true) {
+        if (snapshot.optJSONObject("settings")?.optBoolean("cues", true) == true &&
+            snapshot.optJSONObject("settings")?.optBoolean("cueAutoPopup", true) != false &&
+            (snapshot.optJSONObject("currentCue") == null || selected >= 0)) {
             card.optJSONArray("terms")?.optJSONObject(0)?.let { term ->
                 panel(canvas, 24f, 360f, 456f, 446f, alpha = 65)
                 text(canvas, L10n.t("용어"), 40f, 383f, 16f, 135, available = 60f)
@@ -230,6 +238,14 @@ class MeetingLensView(context: Context) : View(context) {
                 lines(canvas, term.optString("definition"), 40f, 408f, 20f, 400f, 2, 185, lineHeight = 1.2f)
             }
         }
+    }
+
+    private fun drawInlineCue(canvas: Canvas, cue: JSONObject) {
+        panel(canvas, 24f, 360f, 456f, 446f, alpha = 95)
+        val label = if (cue.optString("type") == "Concepts") L10n.t("용어") else L10n.t("AI Cue")
+        text(canvas, label, 40f, 383f, 16f, 150, available = 62f)
+        text(canvas, cue.optString("title"), 106f, 383f, 19f, 245, bold = true, available = 334f)
+        lines(canvas, cue.optString("body"), 40f, 408f, 20f, 400f, 2, 220, lineHeight = 1.2f)
     }
 
     private fun drawCueHistory(canvas: Canvas, session: JSONObject) {
@@ -255,9 +271,12 @@ class MeetingLensView(context: Context) : View(context) {
         badge(canvas, type, 438f, 155f, 180f, alpha)
         text(canvas, L10n.t("AI Cue"), 42f, 173f, 17f, alpha * 145 / 255, available = 200f)
         lines(canvas, cue.optString("title").take(16), 42f, 220f, 28f, 396f, 2, alpha, bold = true)
-        val body = cue.optString("body").take(36)
+        val body = cue.optString("body").take(72)
         val size = fitSize(body, 396f, if (compact) 3 else 4, 27f, 22f)
         lines(canvas, body, 42f, 299f, size, 396f, if (compact) 3 else 4, alpha * 225 / 255)
+        if (cue.optString("sourceKind") == "modelKnowledge") {
+            text(canvas, L10n.t("Rokid AI · 일반 지식"), 42f, if (compact) 430f else 465f, 16f, alpha * 135 / 255, available = 396f)
+        }
         cue.optString("sourceTitle").takeIf { it.isNotBlank() }?.let { source ->
             val y = if (compact) 418f else 449f
             lines(canvas, L10n.t("출처: {0}", source), 42f, y, 18f, 396f, if (compact) 1 else 2, alpha * 135 / 255)

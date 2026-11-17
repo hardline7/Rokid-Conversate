@@ -1,7 +1,7 @@
 # Rokid AI helper
 
 For installation without building, download the Windows Setup ZIP from
-[Releases](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.3) and follow
+[Releases](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.4) and follow
 [the complete APK + helper guide](../../docs/INSTALL.en.md). The packaged
 `Install-Conversate.ps1` installs both components; this page describes the helper alone.
 

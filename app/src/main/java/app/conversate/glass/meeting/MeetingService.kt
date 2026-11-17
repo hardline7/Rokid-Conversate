@@ -34,6 +34,9 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
     private var stoppingUntil = 0L
     private var lastSummary = 0L
     private var cueBusy = false
+    private var cueCursor = 0
+    private var cueLastRequest = 0L
+    private var cueRetryAt = 0L
     private var cueEpoch = 0
     private var summaryBusy = false
     private val pendingLive = java.util.ArrayDeque<String>()
@@ -75,6 +78,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
                 status = if (session?.optString("status") == "running") L10n.t("● 인식 중") else L10n.t("Rokid 연결 중")
                 liveStatus = L10n.t("발화 묶음 대기")
             }
+            requestCue()
             dispatchLiveSummary()
             dispatchRecaps()
             translateInterface()
@@ -168,7 +172,6 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
             if (store.appendUtterance(current.getString("id"), row)) {
                 session = store.session(current.getString("id"))
                 partial = ""
-                if (drainAction == null && !store.settings().getBoolean("summaries")) requestCue()
             }
         } catch (e: Exception) { pause(L10n.t("저장 실패 · 인식 중지: {0}" , e.message)) }
     }
@@ -267,6 +270,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
         requireReady()
         session = store.createSession()
         liveIndex = -1; liveStatus = L10n.t("발화 묶음 대기"); liveRetryAt = 0L
+        cueCursor = 0; cueLastRequest = 0L; cueRetryAt = 0L
         segment = 1; partial = ""; viewIndex = 0; prepIndex = 0; cueIndex = -1; cues.clear()
         lastSpeech = System.currentTimeMillis(); lastSummary = lastSpeech
         kickTick()
@@ -360,7 +364,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
             return
         }
         val id = current.getString("id")
-        val includeTerms = store.settings().getBoolean("cues")
+        val includeTerms = false // Independent contextual cues now own glossary explanations.
         liveBusy = true; liveStatus = L10n.t("Rokid AI 요약 중")
         ai.generate("liveSummary", JSONObject().put("utterances", rows).put("includeTerms", includeTerms)) { result -> main.post {
             if (closing) return@post
@@ -374,7 +378,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
                     history.put(valid.put("createdAt", System.currentTimeMillis()))
                     latest.put("liveSummaries", history).put("liveCursor", cursor + rows.length())
                     store.saveSession(latest)
-                    if (session?.optString("id") == id) { session = store.session(id); requestCue() }
+                    if (session?.optString("id") == id) { session = store.session(id) }
                     liveStatus = L10n.t("요약 갱신됨")
                 } else {
                     liveStatus = L10n.t("요약 응답 실패 · 다시 시도 중")
@@ -399,16 +403,32 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
 
     private fun requestCue() {
         val current = session ?: return
-        if (!ai.available || cueBusy || current.optString("status") != "running" || !store.settings().getBoolean("cues")) return
-        cueBusy = true
+        if (closing || !ai.available || cueBusy || liveBusy || summaryBusy || localeBusy ||
+            current.optString("status") != "running" || !store.settings().getBoolean("cues")) return
+        val now = System.currentTimeMillis()
+        if (now < cueRetryAt) return
+        val all = current.getJSONArray("utterances")
+        cueCursor = CueTriggerPolicy.freshCursor(all, cueCursor, now)
+        val rows = CueTriggerPolicy.batch(all, cueCursor, now, lastSpeech, cueLastRequest) ?: return
+        val nextCursor = cueCursor + rows.length()
+        val context = JSONArray((maxOf(0, cueCursor - 6) until cueCursor).map { all.getJSONObject(it) })
+        cueBusy = true; cueLastRequest = now
         val id = current.getString("id")
         val epoch = cueEpoch
-        ai.generate("cue", aiInput(current)) { result -> main.post {
+        val notes = current.getJSONArray("noteSnapshots")
+        val input = JSONObject().put("notes", notes).put("utterances", rows).put("context", context).put("seenConcepts", cues.seenConcepts())
+        ai.generate("cue", input) { result -> main.post {
             if (closing) return@post
             cueBusy = false
-            if (session?.optString("id") == id && session?.optString("status") == "running" && epoch == cueEpoch && store.settings().getBoolean("cues")) result.onSuccess { answer ->
-                answer.optJSONObject("cue")?.let { cues.offer(it, session!!.getJSONArray("noteSnapshots"), System.currentTimeMillis()) }
-            }.onFailure { status = L10n.t("Rokid AI 응답 실패 · 자막은 계속") }
+            if (session?.optString("id") != id || session?.optString("status") != "running" || epoch != cueEpoch || !store.settings().getBoolean("cues")) return@post
+            val generated = result.getOrNull()
+            if (generated != null && generated.has("cue")) {
+                cueCursor = nextCursor
+                generated.optJSONObject("cue")?.let { cues.offer(it, notes, System.currentTimeMillis(), rows) }
+            } else {
+                cueRetryAt = System.currentTimeMillis() + 10000
+                status = L10n.t("Rokid AI 응답 실패 · 자막은 계속")
+            }
         } }
     }
     private fun summarize(final: Boolean) { session?.optString("id")?.let { summarizeSession(it, final) } }
@@ -471,6 +491,23 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
                 aiTest = JSONObject().put("status", if (valid) "passed" else "no_valid_cue")
                     .put("synthetic", true).put("cue", cue ?: JSONObject.NULL)
             }.onFailure { error -> aiTest = JSONObject().put("status", "error").put("error", error.message ?: L10n.t("요청 실패")) }
+        } }
+    }
+
+    private fun testConceptCue() {
+        check(ai.available) { ai.status }
+        check(!cueBusy && !liveBusy && !summaryBusy) { L10n.t("Rokid AI 처리 중입니다") }
+        val rows = JSONArray().put(JSONObject().put("id", "concept-test-1")
+            .put("text", "이번 AI 검색 시스템에 RAG를 적용하는 방안을 검토합시다."))
+        aiTest = JSONObject().put("status", "pending").put("synthetic", true)
+        ai.generate("cue", JSONObject().put("notes", JSONArray()).put("utterances", rows)
+            .put("context", JSONArray()).put("seenConcepts", JSONArray())) { result -> main.post {
+            if (closing) return@post
+            val raw = result.getOrNull()?.optJSONObject("cue")
+            val policy = CuePolicy()
+            val valid = raw?.optString("type") == "Concepts" && policy.offer(raw, JSONArray(), System.currentTimeMillis(), rows)
+            aiTest = JSONObject().put("status", if (valid) "passed" else "error").put("synthetic", true)
+                .put("conceptCue", if (valid) policy.tick(System.currentTimeMillis()) else JSONObject.NULL)
         } }
     }
 
@@ -539,6 +576,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
                         "dismissCue" -> cues.dismiss()
                         "testAi" -> testAi()
                         "testLiveSummary" -> testLiveSummary()
+                        "testConceptCue" -> testConceptCue()
                         "testLanguage" -> testLanguage(body.getString("languageTag"))
                         "rebuildSummary" -> {
                             check(ai.available) { ai.status }; summarizeSession(body.getString("id"), true)
