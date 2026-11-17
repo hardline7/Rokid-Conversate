@@ -18,6 +18,8 @@ The point is to help you stay in the conversation: **glance at a short summary n
 
 “Local” describes the app, storage, companion and helper transport. The helper uses Rokid's official host capability, so **this is not a zero-API or fully offline AI claim**. Rokid's phone/cloud connectivity and service policies can still apply.
 
+> **Current setup is a developer preview: installing the APK alone does not provision the AI helper.** The Windows ZIP still uses the ADB/Node.js developer deployment route. See [APK-only setup limits and the official distribution alternative](docs/SETUP-LIMITS.md).
+
 ## Install without building
 
 **[Download the v0.3.0 preview](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.0)** · [English setup guide](docs/INSTALL.en.md) · [한국어 설치 안내](docs/INSTALL.ko.md)
@@ -245,7 +247,7 @@ Personal meeting records, runtime tokens, device captures, extracted system APKs
 
 ## Validation and current limits
 
-The project passes **29 JVM tests, Android lint and the APK build**. Real-device checks cover STT reception; start, pause, resume and end transitions; real AI responses; lens summary display and persistence; HTTPS access; and preservation of existing meeting records. Desktop/mobile browser tests cover full-transcript scrolling, English UI and live Japanese label updates. Real Rokid AI translation responses were checked for Japanese and Spanish.
+Current main passes **34 JVM tests, Android lint and the APK build**. The published v0.3.0 passed 29 tests; subsequent source changes harden language classification and catalogue coverage and are not yet included in that downloadable APK. Real-device checks cover STT reception; start, pause, resume and end transitions; real AI responses; lens summary display and persistence; HTTPS access; and preservation of existing meeting records. Desktop/mobile browser tests cover full-transcript scrolling, English UI and live Japanese label updates. Real Rokid AI translation responses were checked for Japanese and Spanish.
 
 The following are still open validation work:
 

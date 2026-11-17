@@ -15,6 +15,26 @@ class L10nTest {
         assertEquals("zh-Hant-TW", L10n.normalize("zh_Hant_TW"))
         assertEquals("en-US", L10n.normalize("../../bad"))
     }
+    @Test fun matchesPrimaryLanguageExactlyRatherThanByPrefix() {
+        for (language in listOf("kok-IN", "enm")) {
+            L10n.initialize(messages, null, language)
+            assertEquals("Meeting", L10n.t("회의"))
+            assertEquals("Meeting", L10n.snapshot().getJSONObject("messages").getString("회의"))
+            assertFalse("$language must not be mistaken for ko/en", L10n.isReady())
+            assertEquals(2, L10n.missing().size)
+        }
+    }
+    @Test fun builtInEnglishCannotBeOverriddenByAStaleGeneratedCache() {
+        val dir = temporary.newFolder()
+        java.io.File(dir, "en-US.json").writeText(JSONObject().put("회의", "오래된 번역").toString())
+        L10n.initialize(messages, dir, "en-US")
+        assertEquals("Meeting", L10n.t("회의"))
+        assertEquals("Meeting", L10n.snapshot().getJSONObject("messages").getString("회의"))
+        assertTrue(L10n.isReady())
+        assertFalse(L10n.accept("en-US", listOf("회의"),
+            JSONObject().put("translations", JSONObject().put("m0", "잘못된 번역"))))
+        assertEquals("Meeting", L10n.t("회의"))
+    }
     @Test fun koreanEnglishAndFallbackPreserveArgumentsVerbatim() {
         L10n.initialize(messages, null, "en-US")
         assertEquals("Summary 2/3", L10n.t("요약 {0}/{1}", 2, 3))
