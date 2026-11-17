@@ -2,7 +2,7 @@
 
 ### Bringing the Even Realities G2 Conversate experience to Rokid.
 
-[한국어](README.md) · [English](README.en.md) · [Screen gallery](#refreshed-lens-interface)
+[한국어](README.md) · [English](README.en.md) · [日本語](README.ja.md) · [Screen gallery](#refreshed-lens-interface)
 
 **Turn your glasses from a transcription display into a companion that helps you understand and remember the conversation.**
 
@@ -342,7 +342,7 @@ The PIN changes when the app service restarts. There is no permanent PIN in this
 | Double tap | Dismiss the current cue, cancel a confirmation or open end confirmation, depending on state. |
 | Tap while paused | Resume the same meeting. |
 
-The meeting pauses when the display sleeps or the app leaves the foreground. Returning to the app does not silently restart recognition. Ten minutes without recognized speech ends the meeting automatically.
+When the app screen closes, recognition and the meeting service stop; an ongoing record is preserved as interrupted. Returning to the app does not silently restart recognition. Ten minutes without recognized speech ends the meeting automatically.
 
 ## Notes and records
 
@@ -369,7 +369,7 @@ Personal meeting records, runtime tokens, device captures, extracted system APKs
 
 ## Validation and current limits
 
-The project passes **34 JVM tests, Android lint and the APK build**. v0.3.4 includes language hardening and the refreshed lens design. Thirty-six Korean/English states were rendered with actual device fonts and checked for monochrome output and safe-area bounds. Real-device checks cover STT reception; start, pause, resume and end transitions; real AI responses; lens summary display and persistence; HTTPS access; and preservation of existing meeting records. Desktop/mobile browser tests cover full-transcript scrolling, English UI and live Japanese label updates. Real Rokid AI translation responses were checked for Japanese and Spanish.
+The project passes **43 JVM tests, Android lint and the APK build**. v0.3.4 includes language hardening and the refreshed lens design. Forty-two Korean/English states were rendered with actual device fonts and checked for monochrome output and safe-area bounds. Real-device checks cover STT reception; start, pause, resume and end transitions; real AI responses; lens summary display and persistence; HTTPS access; and preservation of existing meeting records. Desktop/mobile browser tests cover full-transcript scrolling, English UI and live Japanese label updates. Real Rokid AI translation responses were checked for Japanese and Spanish.
 
 The following are still open validation work:
 
@@ -416,7 +416,7 @@ docs/                     Usage, design and validation notes
 | Companion will not open | Current address/port shown on the glasses, network reachability, device power and app state. |
 | PIN rejected | A service restart generates a new PIN; use the current one. |
 | No captions arrive | Paired Rokid phone connection, native captions and recognition language. |
-| AI is waiting | Briefly open Home and return to attach the widget, or reinstall the helper after ending the meeting. |
+| AI is waiting | Open the app and rerun the PC helper setup after ending the meeting; check the paired Rokid phone connection. |
 | Summaries or terms are missing/slow | AI/network availability, finalized speech and Summary/Cue settings. |
 | English appears in another language | Check interface translation status and AI connectivity. English is the preparation fallback. |
 | Imported PDF has no text | Scanned images need a separate OCR step first. |
