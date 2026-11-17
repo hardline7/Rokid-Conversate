@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import fi.iki.elonen.NanoHTTPD
+import fi.iki.elonen.NanoWSD
 import org.json.JSONObject
 import java.io.File
 import java.security.MessageDigest
@@ -13,14 +14,18 @@ import java.util.UUID
 /** Local-only authenticated transport to our own AIUI agent. The agent uses Rokid's
  * documented LanguageModel capability; Rokid account credentials never enter this APK.
  */
-class RokidRelayAi(private val context: Context) : NanoHTTPD("127.0.0.1", 8766), MeetingAi {
+class RokidRelayAi(private val context: Context) : NanoWSD("127.0.0.1", 8766), MeetingAi {
     private data class Job(val id: String, val task: String, val system: String, val prompt: String,
         val deadline: Long, val language: String, val callback: (Result<JSONObject>) -> Unit, var claimed: Boolean = false)
     private val main = Handler(Looper.getMainLooper())
     private val jobs = linkedMapOf<String, Job>()
     private val waiter = BridgeWaiter()
-    @Volatile private var closed = false
+    @Volatile private var closed = true
+    @Volatile private var epoch = 0L
+    private val lifecycleEvents = java.util.concurrent.Executors.newSingleThreadExecutor { Thread(it, "Conversate-lifecycle").apply { isDaemon = true } }
+    private val lifecycleSockets = java.util.concurrent.CopyOnWriteArraySet<LifecycleSocket>()
     private var presenceUntil = 0L
+    private val received = java.util.concurrent.atomic.AtomicLong()
     private val polls = java.util.concurrent.atomic.AtomicLong()
     private val heartbeats = java.util.concurrent.atomic.AtomicLong()
     private val waiting = java.util.concurrent.atomic.AtomicInteger()
@@ -37,7 +42,8 @@ class RokidRelayAi(private val context: Context) : NanoHTTPD("127.0.0.1", 8766),
         token = if (file.exists()) file.readText().trim() else ByteArray(32).also(SecureRandom()::nextBytes)
             .joinToString("") { "%02x".format(it.toInt() and 255) }.also { file.writeText(it) }
         require(token.length == 64)
-        start(SOCKET_READ_TIMEOUT, true)
+        // Local lifecycle socket parks indefinitely: no timeout/ping wakeups.
+        start(0, true)
     }
     override fun generate(task: String, input: JSONObject, callback: (Result<JSONObject>) -> Unit) {
         if (!available) { callback(Result.failure(IllegalStateException(status))); return }
@@ -59,10 +65,13 @@ class RokidRelayAi(private val context: Context) : NanoHTTPD("127.0.0.1", 8766),
         main.postDelayed({ synchronized(jobs) { jobs.remove(id) }?.callback
             ?.invoke(Result.failure(IllegalStateException(L10n.t("Rokid AI 응답 시간 초과")))) }, timeout)
     }
-    override fun serve(session: IHTTPSession): Response {
+    override fun serveHttp(session: IHTTPSession): Response {
         fun json(code: Int, value: JSONObject): Response = newFixedLengthResponse(Response.Status.lookup(code), "application/json; charset=utf-8", value.toString())
         val supplied = session.headers["x-conversate-bridge"].orEmpty()
         if (!MessageDigest.isEqual(supplied.toByteArray(), token.toByteArray())) return json(401, JSONObject().put("error", "unauthorized"))
+        received.incrementAndGet()
+        if (session.method == Method.GET && session.uri == "/bridge/status") return json(200, transportStats())
+        if (closed) return json(410, JSONObject().put("error", "app_closed"))
         if (session.headers["transfer-encoding"] != null || (session.headers["content-length"]?.toLongOrNull() ?: 0) > 262144) {
             return json(413, JSONObject().put("error", "too_large"))
         }
@@ -117,10 +126,11 @@ class RokidRelayAi(private val context: Context) : NanoHTTPD("127.0.0.1", 8766),
         } catch (_: Exception) { json(400, JSONObject().put("error", "invalid_payload")) }
     }
     private fun awaitJob(waitMs: Long): Job? {
+        val currentEpoch = epoch
         val until = System.nanoTime() + waitMs * 1_000_000
         waiting.incrementAndGet()
         try {
-            while (!closed) {
+            while (!closed && currentEpoch == epoch) {
                 val observed = waiter.version()
                 synchronized(jobs) { jobs.values.firstOrNull { !it.claimed }?.also { it.claimed = true } }?.let { return it }
                 val left = (until - System.nanoTime()) / 1_000_000
@@ -132,10 +142,55 @@ class RokidRelayAi(private val context: Context) : NanoHTTPD("127.0.0.1", 8766),
     }
     fun transportStats(): JSONObject = JSONObject().put("protocol", 2).put("pollRequests", polls.get())
         .put("heartbeats", heartbeats.get()).put("waitingRequests", waiting.get())
+        .put("appActive", !closed).put("lifecycleClients", lifecycleSockets.size).put("receivedRequests", received.get())
     override fun close() {
-        closed = true; waiter.wake()
-        stop(); main.removeCallbacksAndMessages(null)
+        closed = true; epoch++; waiter.wake()
+        synchronized(jobs) { hostAvailable = false; presenceUntil = 0 }
+        notifyLifecycle()
+        main.removeCallbacksAndMessages(null)
         val pending = synchronized(jobs) { jobs.values.toList().also { jobs.clear() } }
         pending.forEach { it.callback(Result.failure(IllegalStateException(L10n.t("Rokid AI 연결 종료")))) }
     }
+    fun attach() {
+        closed = false
+        notifyLifecycle()
+    }
+    private fun notifyLifecycle() {
+        val active = !closed
+        lifecycleEvents.execute { lifecycleSockets.forEach { it.publish(active) } }
+    }
+    override fun openWebSocket(handshake: IHTTPSession): WebSocket = LifecycleSocket(handshake)
+    private inner class LifecycleSocket(handshake: IHTTPSession) : WebSocket(handshake) {
+        @Volatile private var authorized = false
+        override fun onOpen() {
+            if (handshakeRequest.uri != "/bridge/lifecycle" || lifecycleSockets.size >= 4) {
+                close(WebSocketFrame.CloseCode.PolicyViolation, "unavailable", false)
+            }
+        }
+        override fun onMessage(message: WebSocketFrame) {
+            if (authorized) return
+            val supplied = runCatching { JSONObject(message.textPayload).optString("token") }.getOrDefault("")
+            if (!MessageDigest.isEqual(supplied.toByteArray(), token.toByteArray())) {
+                close(WebSocketFrame.CloseCode.PolicyViolation, "unauthorized", false); return
+            }
+            authorized = true
+            lifecycleSockets.add(this)
+            publish()
+        }
+        fun publish(active: Boolean = !this@RokidRelayAi.closed) {
+            if (!authorized) return
+            runCatching { send(JSONObject().put("active", active).toString()) }.onFailure {
+                android.util.Log.w("ConversateLifecycle", "send failed: " + it.javaClass.simpleName)
+                lifecycleSockets.remove(this)
+            }
+        }
+        override fun onClose(code: WebSocketFrame.CloseCode?, reason: String?, remote: Boolean) { lifecycleSockets.remove(this) }
+        override fun onPong(pong: WebSocketFrame) {}
+        override fun onException(failure: java.io.IOException) { lifecycleSockets.remove(this) }
+    }
+    companion object {
+        @Volatile private var shared: RokidRelayAi? = null
+        @Synchronized fun acquire(context: Context): RokidRelayAi = (shared ?: RokidRelayAi(context.applicationContext).also { shared = it }).also { it.attach() }
+    }
+
 }

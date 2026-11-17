@@ -14,7 +14,8 @@ class MeetingActivity : Activity() {
     private val main = Handler(Looper.getMainLooper())
     private val refresh = object : Runnable {
         override fun run() {
-            val state = MeetingService.instance?.also { it.lensVisible = true }?.lensState() ?: JSONObject().put("status", L10n.t("준비 중"))
+            if (MeetingService.instance == null) startForegroundService(Intent(this@MeetingActivity, MeetingService::class.java))
+            val state = MeetingService.instance?.also { it.showLens() }?.lensState() ?: JSONObject().put("status", L10n.t("준비 중"))
             lens.render(state)
             main.postDelayed(this, if (state.optJSONObject("active")?.optString("status") == "running") 250 else 1000)
         }
@@ -23,13 +24,12 @@ class MeetingActivity : Activity() {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         lens = MeetingLensView(this); setContentView(lens)
-        startForegroundService(Intent(this, MeetingService::class.java))
     }
-    override fun onResume() { super.onResume(); MeetingService.instance?.lensVisible = true; main.post(refresh) }
+    override fun onResume() { super.onResume(); startForegroundService(Intent(this, MeetingService::class.java)); MeetingService.instance?.showLens(); main.removeCallbacks(refresh); main.post(refresh) }
     override fun onStop() {
         main.removeCallbacks(refresh)
         MeetingService.instance?.lensVisible = false
-        MeetingService.instance?.pause(L10n.t("안경 화면을 벗어나 일시정지"))
+        MeetingService.instance?.closeFromLens()
         super.onStop()
     }
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {

@@ -117,8 +117,14 @@ export function bridge(owner, options) {
   }
   async function loop() {
     let retry = 2000;
+    let joined = false;
+    const joinUntil = Date.now() + 4000;
     while (alive) {
       try {
+        if (String(opts.managed) === 'true' && !joined) {
+          await request('/bridge/heartbeat', { available: false, client: opts.client || 'helper' }, 1000);
+          joined = true;
+        }
         if (!lastAvailability || (!available && Date.now() - lastAvailability >= 60000)) await refreshAvailability();
         if (!alive) return;
         if (!available) { status('Waiting for Rokid AI'); await sleep(30000); continue; }
@@ -135,6 +141,11 @@ export function bridge(owner, options) {
         await runJob(next.job);
       } catch (failure) {
         if (!alive) return;
+        if (String(opts.managed) === 'true') {
+          if (!joined && Date.now() < joinUntil) { await sleep(250); continue; }
+          // No app: stop. A future launcher detach starts a new bridge explicitly.
+          alive = false; heartbeatMode(); destroyModel(); return;
+        }
         if (lastStatus !== 'Waiting for meeting app') console.log('ConversateAI relay-retry name=' + String(failure && failure.name || 'Error'));
         legacy = false; heartbeatMode();
         status('Waiting for meeting app');
@@ -167,6 +178,42 @@ export function bridge(owner, options) {
       if (sleepWake) sleepWake();
       requests.forEach(controller => controller.abort()); requests.clear();
       destroyModel();
+    },
+  };
+}
+
+// A parked lifecycle socket has no ping, interval or reconnect timer. The APK
+// sends an event only when the user opens/closes its meeting screen.
+export function lifecycle(owner, options) {
+  const opts = options || {};
+  let socket = null, worker = null, alive = false;
+  function stopWorker() { if (worker) worker.stop(); worker = null; }
+  return {
+    start() {
+      if (alive || !opts.token) return;
+      alive = true;
+      const endpoint = String(opts.endpoint || 'http://127.0.0.1:8766').replace(/\/$/, '');
+      socket = new WebSocket(endpoint.replace(/^http/, 'ws') + '/bridge/lifecycle');
+      socket.onopen = () => { if (alive) socket.send(JSON.stringify({ token: String(opts.token) })); };
+      socket.onmessage = event => {
+        if (!alive) return;
+        let state;
+        try { state = JSON.parse(String(event.data)); } catch (_) { return; }
+        if (state.active === true && !worker) {
+          console.log('ConversateAI app-start');
+          worker = bridge(owner, Object.assign({}, opts, { managed: 'true' }));
+          worker.start();
+        } else if (state.active === false) {
+          stopWorker();
+          console.log('ConversateAI app-stop');
+        }
+      };
+      socket.onclose = () => { stopWorker(); console.log('ConversateAI channel-closed'); };
+      socket.onerror = () => { stopWorker(); };
+    },
+    stop() {
+      alive = false; stopWorker();
+      if (socket) { socket.close(); socket = null; }
     },
   };
 }

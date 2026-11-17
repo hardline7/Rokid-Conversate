@@ -1,7 +1,7 @@
 # Rokid AI helper
 
 For installation without building, download the Windows Setup ZIP from
-[Releases](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.1) and follow
+[Releases](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.3) and follow
 [the complete APK + helper guide](../../docs/INSTALL.en.md). The packaged
 `Install-Conversate.ps1` installs both components; this page describes the helper alone.
 
@@ -34,8 +34,9 @@ package does not embed it.
 Runtime protocol (HTTP loopback, port 8766):
 
 - `X-Conversate-Bridge`: our app's relay token.
-- `POST /bridge/heartbeat`: availability and status every five seconds, including
-  while the model request is pending.
+- `WS /bridge/lifecycle`: token-authenticated passive app-open/app-close events; no ping/reconnect timers.
+- `POST /bridge/heartbeat`: availability at startup and during active generation.
+- `GET /bridge/status`: authenticated transport diagnostics.
 - `GET /bridge/job`: one queued task with `id`, `system`, `prompt`, `deadline`.
 - `POST /bridge/result`: `{id,ok:true,output}` or `{id,ok:false,error}`.
 
@@ -52,3 +53,5 @@ Verified on this connected device: real Korean LanguageModel response, authentic
 relay, and Widget heartbeats continuing after the native meeting screen was
 restored and diagnostic assistant cards were dismissed. See
 [implementation status](../../docs/BUILD-STATUS.md). Raw captures and firmware extracts are not published.
+
+The widget starts no AI worker while the native app is closed. The cached native process keeps only the passive lifecycle channel. Reboot, force-stop and OS process reclamation require rerunning the helper setup after opening the app; automatic recovery is not implemented. See [POWER.md](../../docs/POWER.md).

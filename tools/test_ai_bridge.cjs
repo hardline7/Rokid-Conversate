@@ -22,7 +22,7 @@ class Clock {
     this.now=until; await flush();
   }
 }
-function harness({legacy=false,createDelay=0,promptDelay=0,token='local-test-token'}={}) {
+function harness({legacy=false,createDelay=0,promptDelay=0,token='local-test-token',lifecycleMode=false}={}) {
   const clock=new Clock(), calls=[], models=[], updates=[];
   let waiting=null, availability=0, creates=0, prompts=0;
   const json=value=>({ok:true,status:200,json:async()=>value});
@@ -48,14 +48,21 @@ function harness({legacy=false,createDelay=0,promptDelay=0,token='local-test-tok
   }
   let source=fs.readFileSync(path.join(__dirname,'rokid-ai/helper/lib/relay.js'),'utf8');
   source=source.replace("import { LanguageModel } from 'language-model';",'const LanguageModel=globalThis.LanguageModel;')
-    .replace('export function bridge','function bridge')+'\nglobalThis.makeBridge=bridge;';
+    .replace(/export function /g,'function ')+'\nglobalThis.makeBridge=bridge;globalThis.makeLifecycle=lifecycle;';
   class FakeDate extends Date { static now(){return clock.now;} }
-  const context={LanguageModel,fetch,AbortController,Date:FakeDate,console,
+  const sockets=[];
+  class MockWebSocket {
+    constructor(url){this.url=url;sockets.push(this);}
+    send(text){this.sent=JSON.parse(text);}
+    close(){this.onclose?.();}
+    state(active){this.onmessage?.({data:JSON.stringify({active})});}
+  }
+  const context={WebSocket:MockWebSocket,LanguageModel,fetch,AbortController,Date:FakeDate,console,
     setTimeout:(fn,ms)=>clock.add(fn,ms),clearTimeout:id=>clock.clear(id),
     setInterval:(fn,ms)=>clock.add(fn,ms,true),clearInterval:id=>clock.clear(id)};
   vm.runInNewContext(source,context);
-  const relay=context.makeBridge({setData:data=>updates.push(data)},{token,client:'widget'});
-  return {clock,calls,models,updates,relay,start:async()=>{relay.start();await flush();},
+  const relay=(lifecycleMode?context.makeLifecycle:context.makeBridge)({setData:data=>updates.push(data)},{token,client:'widget'});
+  return {clock,calls,models,updates,relay,sockets,start:async()=>{relay.start();await flush();},
     enqueue:async()=>{assert.ok(waiting);waiting({id:'test-job',system:'JSON only',prompt:'synthetic',deadline:clock.now+60000});await flush();},
     counts:()=>({availability,creates,prompts}),stop:async()=>{relay.stop();await flush();}};
 }
@@ -98,4 +105,25 @@ test('stopping during model creation cleans up its late result',async()=>{
   const h=harness({createDelay:5000});await h.start();await h.enqueue();await h.stop();await h.clock.advance(6000);
   assert.equal(h.counts().prompts,0);assert.equal(h.models[0].destroyed,1);
   assert.equal(h.calls.filter(c=>c.path==='/bridge/result').length,0);
+});
+
+test('closed app lifecycle has no polls, availability calls, models or timers; reopening starts work',async()=>{
+  const h=harness({lifecycleMode:true});await h.start();
+  assert.equal(h.sockets.length,1);h.sockets[0].onopen();
+  assert.equal(h.sockets[0].sent.token,'local-test-token');
+  h.sockets[0].state(false);await h.clock.advance(120000);
+  assert.equal(h.calls.length,0);assert.equal(h.clock.timers.size,0);
+  assert.deepEqual(h.counts(),{availability:0,creates:0,prompts:0});
+  h.sockets[0].state(true);await flush();await h.enqueue();
+  assert.equal(h.counts().prompts,1);
+  h.sockets[0].state(false);await flush();const before=h.calls.length;
+  await h.clock.advance(120000);assert.equal(h.calls.length,before);assert.equal(h.clock.timers.size,0);
+  h.sockets[0].state(true);await flush();await h.enqueue();assert.equal(h.counts().prompts,2);
+  await h.stop();assert.equal(h.clock.timers.size,0);
+});
+test('closed lifecycle channel stops work without a background reconnect timer',async()=>{
+  const h=harness({lifecycleMode:true});await h.start();h.sockets[0].state(true);await flush();
+  h.sockets[0].onclose();await flush();const before=h.calls.length;
+  await h.clock.advance(120000);assert.equal(h.calls.length,before);assert.equal(h.clock.timers.size,0);
+  await h.stop();
 });

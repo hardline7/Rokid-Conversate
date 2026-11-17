@@ -2,21 +2,17 @@
 { "widget": { "family": "1x1" } }
 </script>
 <script setup>
-import { bridge } from '../../lib/relay.js';
+import { bridge, lifecycle } from '../../lib/relay.js';
 export default {
   data: {},
   onCreate(options) {
-    console.log('ConversateAI widget-created');
-    this.relay = bridge(this, Object.assign({}, options, { client: 'widget' }));
-    this.relay.start();
+    const create = String(options && options.probe) === 'true' ? bridge : lifecycle;
+    this.connection = create(this, Object.assign({}, options, { client: 'widget' }));
+    this.connection.start();
   },
-  onAttach() { if (this.relay) this.relay.wake(); },
-  // Detach also occurs when the meeting app opens; keep its bridge available.
+  onAttach() {},
   onDetach() {},
-  onDestroy() {
-    console.log('ConversateAI widget-destroyed');
-    if (this.relay) this.relay.stop();
-  },
+  onDestroy() { if (this.connection) this.connection.stop(); },
 };
 </script>
 <widget><view class="bridge-anchor" /></widget>

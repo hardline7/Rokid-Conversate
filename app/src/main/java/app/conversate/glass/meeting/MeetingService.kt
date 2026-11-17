@@ -50,6 +50,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
     private var drainReason = ""
     private val drainTimeout = Runnable { finishDrain(false) }
     private var aiTest = JSONObject().put("status", "not_run")
+    private var closing = false
     private var serviceTicks = 0L
     private var nextTickMs = 1000L
     var lensVisible = false
@@ -67,6 +68,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
     }
     private val tick = object : Runnable {
         override fun run() {
+            if (closing) return
             serviceTicks++
             val now = System.currentTimeMillis()
             if (L10n.switchLanguage(DeviceLanguage.current(this@MeetingService))) {
@@ -85,9 +87,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
                 }
                 if (now - lastSummary >= 90000) { lastSummary = now; summarize(false) }
             }
-            val work = liveBusy || summaryBusy || cueBusy || localeBusy || drainAction != null ||
-                (ai.available && (pendingLive.isNotEmpty() || pendingRecaps.isNotEmpty() || !L10n.isReady()))
-            nextTickMs = if (lensVisible || session?.optString("status") == "running" || work) 1000L else 30000L
+            nextTickMs = 1000L // This loop exists only while the meeting screen is open.
             main.removeCallbacks(this)
             main.postDelayed(this, nextTickMs)
         }
@@ -112,13 +112,25 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
             web.startSecure()
             stt = RokidSttClient(this, this)
             stt.connect()
-            ai = RokidRelayAi(this)
+            ai = RokidRelayAi.acquire(this)
             registerReceiver(screenReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
             main.post(tick)
         } catch (e: Exception) {
             status = L10n.t("초기화 실패: {0}" , e.message)
             android.util.Log.e("Conversate", "Service initialization failed", e)
         }
+    }
+
+    fun showLens() {
+        if (!closing) lensVisible = true
+    }
+
+    fun closeFromLens() {
+        if (closing) return
+        closing = true
+        main.removeCallbacks(tick)
+        if (session?.optString("status") == "running") pause(L10n.t("안경 화면을 벗어나 일시정지"))
+        if (drainAction == null) stopSelf()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -317,9 +329,9 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
         val action = drainAction ?: return
         main.removeCallbacks(drainTimeout); drainAction = null
         status = if (acknowledged) drainReason else L10n.t("종료 응답 없음 · 폰에서 자막을 확인해 주세요")
-        partial = ""; kickTick()
+        partial = ""; if (!closing) kickTick()
         if (action == "pause") {
-            current.put("status", "paused"); store.saveSession(current); return
+            current.put("status", "paused"); store.saveSession(current); if (closing) stopSelf(); return
         }
         current.put("status", "ended").put("endedAt", System.currentTimeMillis())
         current.put("summaryStatus", if (store.settings().getBoolean("summaries")) "unavailable" else "disabled")
@@ -327,6 +339,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
         val endedId = current.getString("id")
         if (!pendingLive.contains(endedId)) pendingLive.addLast(endedId)
         session = null; confirmation = ""; cues.clear()
+        if (closing) { stopSelf(); return }
         if (ai.available && store.settings().getBoolean("summaries")) summarizeSession(endedId, true)
     }
 
@@ -350,6 +363,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
         val includeTerms = store.settings().getBoolean("cues")
         liveBusy = true; liveStatus = L10n.t("Rokid AI 요약 중")
         ai.generate("liveSummary", JSONObject().put("utterances", rows).put("includeTerms", includeTerms)) { result -> main.post {
+            if (closing) return@post
             liveBusy = false
             val latest = store.session(id)
             if (latest != null && store.settings().getBoolean("summaries")) {
@@ -376,6 +390,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
         val language = L10n.tag
         localeBusy = true
         ai.generate("localize", L10n.input(keys)) { result -> main.post {
+            if (closing) return@post
             localeBusy = false
             val accepted = runCatching { result.getOrNull()?.let { L10n.accept(language, keys, it) } == true }.getOrDefault(false)
             if (!accepted) localeRetryAt = System.currentTimeMillis() + 30000
@@ -389,6 +404,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
         val id = current.getString("id")
         val epoch = cueEpoch
         ai.generate("cue", aiInput(current)) { result -> main.post {
+            if (closing) return@post
             cueBusy = false
             if (session?.optString("id") == id && session?.optString("status") == "running" && epoch == cueEpoch && store.settings().getBoolean("cues")) result.onSuccess { answer ->
                 answer.optJSONObject("cue")?.let { cues.offer(it, session!!.getJSONArray("noteSnapshots"), System.currentTimeMillis()) }
@@ -409,6 +425,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
         // potentially mistaken summary) as conversation evidence for a recap.
         val summaryInput = JSONObject().put("utterances", current.getJSONArray("utterances"))
         ai.generate(if (final) "recap" else "summary", summaryInput) { result -> main.post {
+            if (closing) return@post
             summaryBusy = false
             val latest = store.session(id)
             if (latest != null) result.onSuccess { generated ->
@@ -447,6 +464,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
         val rows = JSONArray().put(JSONObject().put("id", "test-1").put("text", L10n.t("이번 프로젝트의 예산은 얼마인가요?")))
         aiTest = JSONObject().put("status", "pending").put("synthetic", true)
         ai.generate("cue", JSONObject().put("notes", notes).put("utterances", rows)) { result -> main.post {
+            if (closing) return@post
             result.onSuccess { generated ->
                 val cue = generated.optJSONObject("cue")
                 val valid = cue != null && CuePolicy().offer(cue, notes)
@@ -463,6 +481,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
             .put("text", L10n.t("이번에는 RAG를 검토해 봅시다. 검색한 문서를 참고해 AI가 답하는 방식입니다. 아직 도입은 결정하지 않았습니다.")))
         aiTest = JSONObject().put("status", "pending").put("synthetic", true)
         ai.generate("liveSummary", JSONObject().put("utterances", rows).put("includeTerms", true)) { result -> main.post {
+            if (closing) return@post
             val card = result.getOrNull()?.let { LiveSummaryPolicy.validate(it, rows) }
             aiTest = JSONObject().put("status", if (card == null) "error" else "passed").put("synthetic", true)
                 .put("liveSummary", card ?: JSONObject.NULL)
@@ -476,6 +495,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
         val input = JSONObject().put("languageTag", L10n.normalize(language)).put("messages", JSONObject()
             .put("m0", "Tap to start a meeting").put("m1", "Summary {0}/{1}"))
         ai.generate("localize", input) { result -> main.post {
+            if (closing) return@post
             val translations = result.getOrNull()?.optJSONObject("translations")
             val valid = translations?.optString("m0")?.isNotBlank() == true &&
                 translations.optString("m1").contains("{0}") && translations.optString("m1").contains("{1}")
@@ -535,6 +555,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
         }
     }
     override fun onDestroy() {
+        closing = true
         main.removeCallbacksAndMessages(null)
         if (captureOwned) stopNative()
         session?.let { it.put("status", "interrupted").put("endedAt", System.currentTimeMillis()); store.saveSession(it) }
