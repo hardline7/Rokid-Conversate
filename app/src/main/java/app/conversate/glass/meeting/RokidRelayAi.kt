@@ -18,13 +18,19 @@ class RokidRelayAi(private val context: Context) : NanoHTTPD("127.0.0.1", 8766),
         val deadline: Long, val language: String, val callback: (Result<JSONObject>) -> Unit, var claimed: Boolean = false)
     private val main = Handler(Looper.getMainLooper())
     private val jobs = linkedMapOf<String, Job>()
+    private val waiter = BridgeWaiter()
+    @Volatile private var closed = false
+    private var presenceUntil = 0L
+    private val polls = java.util.concurrent.atomic.AtomicLong()
+    private val heartbeats = java.util.concurrent.atomic.AtomicLong()
+    private val waiting = java.util.concurrent.atomic.AtomicInteger()
     private val token: String
     private var lastHeartbeat = 0L
     private var hostAvailable = false
     private var hostStatus = L10n.t("Rokid AI 에이전트 연결 대기")
-    override val available: Boolean get() = synchronized(jobs) { hostAvailable && System.currentTimeMillis() - lastHeartbeat < 15000 }
+    override val available: Boolean get() = synchronized(jobs) { !closed && hostAvailable && System.currentTimeMillis() < presenceUntil }
     override val status: String get() = synchronized(jobs) {
-        if (System.currentTimeMillis() - lastHeartbeat >= 15000) L10n.t("Rokid AI 에이전트 연결 대기") else if (hostAvailable) L10n.t("Rokid AI 연결됨") else L10n.t("Rokid AI 사용 불가")
+        if (System.currentTimeMillis() >= presenceUntil) L10n.t("Rokid AI 에이전트 연결 대기") else if (hostAvailable) L10n.t("Rokid AI 연결됨") else L10n.t("Rokid AI 사용 불가")
     }
     init {
         val file = File(context.filesDir, "ai_bridge_token")
@@ -49,6 +55,7 @@ class RokidRelayAi(private val context: Context) : NanoHTTPD("127.0.0.1", 8766),
             if (jobs.size >= 3) { callback(Result.failure(IllegalStateException(L10n.t("Rokid AI 처리 중입니다")))); return }
             jobs[id] = Job(id, task, RokidPrompts.instructions(task, outputLanguage), prompt, System.currentTimeMillis() + timeout, outputLanguage, callback)
         }
+        waiter.wake()
         main.postDelayed({ synchronized(jobs) { jobs.remove(id) }?.callback
             ?.invoke(Result.failure(IllegalStateException(L10n.t("Rokid AI 응답 시간 초과")))) }, timeout)
     }
@@ -61,8 +68,15 @@ class RokidRelayAi(private val context: Context) : NanoHTTPD("127.0.0.1", 8766),
         }
         return try {
             if (session.method == Method.GET && session.uri == "/bridge/job") {
-                val job = synchronized(jobs) { jobs.values.firstOrNull { !it.claimed }?.also { it.claimed = true } }
-                return json(200, JSONObject().put("job", if (job == null) JSONObject.NULL else JSONObject()
+                val waitMs = (session.parameters["waitMs"]?.firstOrNull()?.toLongOrNull() ?: 0).coerceIn(0, 25000)
+                polls.incrementAndGet()
+                synchronized(jobs) {
+                    lastHeartbeat = System.currentTimeMillis()
+                    presenceUntil = maxOf(presenceUntil, lastHeartbeat + waitMs + 15000)
+                }
+                val job = awaitJob(waitMs)
+                synchronized(jobs) { presenceUntil = maxOf(presenceUntil, System.currentTimeMillis() + 15000) }
+                return json(200, JSONObject().put("protocol", 2).put("job", if (job == null) JSONObject.NULL else JSONObject()
                     .put("id", job.id).put("task", job.task).put("system", job.system).put("prompt", job.prompt).put("deadline", job.deadline)))
             }
             if (session.method != Method.POST) return json(404, JSONObject().put("error", "not_found"))
@@ -79,7 +93,9 @@ class RokidRelayAi(private val context: Context) : NanoHTTPD("127.0.0.1", 8766),
             val body = JSONObject(text.ifBlank { "{}" })
             when (session.uri) {
                 "/bridge/heartbeat" -> synchronized(jobs) {
+                    heartbeats.incrementAndGet()
                     lastHeartbeat = System.currentTimeMillis()
+                    presenceUntil = maxOf(presenceUntil, lastHeartbeat + 15000)
                     hostAvailable = body.optBoolean("available")
                     hostStatus = if (hostAvailable) L10n.t("Rokid AI 연결됨") else body.optString("status", L10n.t("Rokid AI 사용 불가")).take(120)
                 }
@@ -100,7 +116,24 @@ class RokidRelayAi(private val context: Context) : NanoHTTPD("127.0.0.1", 8766),
             json(200, JSONObject().put("ok", true))
         } catch (_: Exception) { json(400, JSONObject().put("error", "invalid_payload")) }
     }
+    private fun awaitJob(waitMs: Long): Job? {
+        val until = System.nanoTime() + waitMs * 1_000_000
+        waiting.incrementAndGet()
+        try {
+            while (!closed) {
+                val observed = waiter.version()
+                synchronized(jobs) { jobs.values.firstOrNull { !it.claimed }?.also { it.claimed = true } }?.let { return it }
+                val left = (until - System.nanoTime()) / 1_000_000
+                if (left <= 0) return null
+                waiter.awaitAfter(observed, left)
+            }
+            return null
+        } finally { waiting.decrementAndGet() }
+    }
+    fun transportStats(): JSONObject = JSONObject().put("protocol", 2).put("pollRequests", polls.get())
+        .put("heartbeats", heartbeats.get()).put("waitingRequests", waiting.get())
     override fun close() {
+        closed = true; waiter.wake()
         stop(); main.removeCallbacksAndMessages(null)
         val pending = synchronized(jobs) { jobs.values.toList().also { jobs.clear() } }
         pending.forEach { it.callback(Result.failure(IllegalStateException(L10n.t("Rokid AI 연결 종료")))) }

@@ -50,7 +50,15 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
     private var drainReason = ""
     private val drainTimeout = Runnable { finishDrain(false) }
     private var aiTest = JSONObject().put("status", "not_run")
+    private var serviceTicks = 0L
+    private var nextTickMs = 1000L
     var lensVisible = false
+        set(value) {
+            if (field == value) return
+            field = value
+            if (value) kickTick()
+        }
+    private fun kickTick() { main.removeCallbacks(tick); main.post(tick) }
     private var wake: PowerManager.WakeLock? = null
     private val cues = CuePolicy()
     private val recovery by lazy { getSharedPreferences("native_recovery", MODE_PRIVATE) }
@@ -59,6 +67,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
     }
     private val tick = object : Runnable {
         override fun run() {
+            serviceTicks++
             val now = System.currentTimeMillis()
             if (L10n.switchLanguage(DeviceLanguage.current(this@MeetingService))) {
                 status = if (session?.optString("status") == "running") L10n.t("● 인식 중") else L10n.t("Rokid 연결 중")
@@ -76,7 +85,11 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
                 }
                 if (now - lastSummary >= 90000) { lastSummary = now; summarize(false) }
             }
-            main.postDelayed(this, 1000)
+            val work = liveBusy || summaryBusy || cueBusy || localeBusy || drainAction != null ||
+                (ai.available && (pendingLive.isNotEmpty() || pendingRecaps.isNotEmpty() || !L10n.isReady()))
+            nextTickMs = if (lensVisible || session?.optString("status") == "running" || work) 1000L else 30000L
+            main.removeCallbacks(this)
+            main.postDelayed(this, nextTickMs)
         }
     }
 
@@ -164,7 +177,9 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
             .put("battery", getSystemService(BatteryManager::class.java).getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY))
             .put("languageTag", L10n.tag).put("uiTranslationReady", L10n.isReady())
             .put("settings", store.settings()).put("serverUrl", serverUrl())
-            .put("ai", JSONObject().put("available", ai.available).put("status", ai.status).put("test", aiTest))
+            .put("ai", JSONObject().put("available", ai.available).put("status", ai.status).put("test", aiTest)
+                .put("transport", (ai as? RokidRelayAi)?.transportStats() ?: JSONObject.NULL))
+            .put("power", JSONObject().put("serviceTicks", serviceTicks).put("nextTickMs", nextTickMs).put("lensVisible", lensVisible))
             .put("currentCue", cues.current ?: JSONObject.NULL).put("view", viewIndex)
             .put("liveIndex", liveIndex).put("liveSummaryStatus", L10n.label(liveStatus))
             .put("prepIndex", prepIndex).put("cueIndex", cueIndex).put("confirmation", confirmation)
@@ -242,6 +257,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
         liveIndex = -1; liveStatus = L10n.t("발화 묶음 대기"); liveRetryAt = 0L
         segment = 1; partial = ""; viewIndex = 0; prepIndex = 0; cueIndex = -1; cues.clear()
         lastSpeech = System.currentTimeMillis(); lastSummary = lastSpeech
+        kickTick()
         try { startNative() } catch (e: Exception) {
             session!!.put("status", "interrupted").put("endedAt", System.currentTimeMillis())
             store.saveSession(session!!); session = null; throw e
@@ -267,7 +283,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
     private fun resume() {
         val current = session ?: error(L10n.t("진행 중인 회의가 없습니다"))
         check(current.optString("status") == "paused") { L10n.t("이미 진행 중입니다") }
-        requireReady(); segment++; cueEpoch++; startNative()
+        requireReady(); segment++; cueEpoch++; startNative(); kickTick()
         current.put("status", "running"); store.saveSession(current); lastSpeech = System.currentTimeMillis()
     }
     private fun stopNative(): Boolean {
@@ -301,7 +317,7 @@ class MeetingService : Service(), RokidSttClient.Listener, CompanionServer.Backe
         val action = drainAction ?: return
         main.removeCallbacks(drainTimeout); drainAction = null
         status = if (acknowledged) drainReason else L10n.t("종료 응답 없음 · 폰에서 자막을 확인해 주세요")
-        partial = ""
+        partial = ""; kickTick()
         if (action == "pause") {
             current.put("status", "paused"); store.saveSession(current); return
         }

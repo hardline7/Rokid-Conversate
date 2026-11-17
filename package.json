@@ -5,7 +5,10 @@
   "description": "Browser regression tests for the Rokid Conversate companion",
   "scripts": {
     "test:web": "node tools/test_transcript_scroll.cjs && node tools/test_companion_locale.cjs",
-    "test:web:mobile": "node tools/test_transcript_mobile.cjs"
+    "test:web:mobile": "node tools/test_transcript_mobile.cjs",
+    "test:bridge": "node --test tools/test_ai_bridge.cjs"
   },
-  "devDependencies": { "playwright": "1.62.1" }
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
 }

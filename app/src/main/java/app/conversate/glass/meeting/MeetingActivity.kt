@@ -14,8 +14,9 @@ class MeetingActivity : Activity() {
     private val main = Handler(Looper.getMainLooper())
     private val refresh = object : Runnable {
         override fun run() {
-            lens.render(MeetingService.instance?.also { it.lensVisible = true }?.lensState() ?: JSONObject().put("status", L10n.t("준비 중")))
-            main.postDelayed(this, 250)
+            val state = MeetingService.instance?.also { it.lensVisible = true }?.lensState() ?: JSONObject().put("status", L10n.t("준비 중"))
+            lens.render(state)
+            main.postDelayed(this, if (state.optJSONObject("active")?.optString("status") == "running") 250 else 1000)
         }
     }
     override fun onCreate(savedInstanceState: Bundle?) {

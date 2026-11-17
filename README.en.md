@@ -10,7 +10,11 @@ Rokid Conversate connects the built-in speech recognition on Rokid Glasses with 
 
 The point is to help you stay in the conversation: **glance at a short summary near the top of the lens, then swipe the frame to revisit what you missed.** Live transcription is optional on the display; recording the final text and generating summaries can continue with captions hidden.
 
-> Current version: **0.3.1-lens**. Native Android app + device-hosted web companion + Rokid AIUI helper widget. This is an independent, unofficial project, not a product or partnership of Even Realities or Rokid. It reimplements the core interaction experience on Rokid and does not claim complete feature or performance parity with the original product.
+> Current version: **0.3.2-power**. Native Android app + device-hosted web companion + Rokid AIUI helper widget. This is an independent, unofficial project, not a product or partnership of Even Realities or Rokid. It reimplements the core interaction experience on Rokid and does not claim complete feature or performance parity with the original product.
+
+## Idle behavior and battery
+
+The AI helper has no visible home-screen label. It waits on a local connection and creates no model session when there is no task. With no meeting or pending work and the app hidden, service checks run every 30 seconds. The local web service and connection remain resident, so idle power use is not zero. See [implementation, device checks and limits](docs/POWER.md).
 
 ## No third-party AI API key. Local app + Rokid AI.
 
@@ -22,13 +26,13 @@ The point is to help you stay in the conversation: **glance at a short summary n
 
 ## Install without building
 
-**[Download the v0.3.1 preview](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.1)** · [English setup guide](docs/INSTALL.en.md) · [한국어 설치 안내](docs/INSTALL.ko.md)
+**[Download the v0.3.2 preview](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.2)** · [English setup guide](docs/INSTALL.en.md) · [한국어 설치 안내](docs/INSTALL.ko.md)
 
 | Download | Purpose |
 |---|---|
-| [Windows Setup ZIP](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.1/Rokid-Conversate-v0.3.1-Windows-Setup.zip) | **Recommended:** APK + AI helper + automatic installer + both language guides |
-| [APK](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.1/Rokid-Conversate-v0.3.1.apk) | Manual APK installation; the AI helper is installed separately |
-| [SHA256SUMS.txt](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.1/SHA256SUMS.txt) | Download checksums |
+| [Windows Setup ZIP](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.2/Rokid-Conversate-v0.3.2-Windows-Setup.zip) | **Recommended:** APK + AI helper + automatic installer + both language guides |
+| [APK](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.2/Rokid-Conversate-v0.3.2.apk) | Manual APK installation; the AI helper is installed separately |
+| [SHA256SUMS.txt](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.2/SHA256SUMS.txt) | Download checksums |
 
 On Windows, install **ADB and Node.js 20+**, fully extract the ZIP, and run this from its folder. Android Studio, JDK and an Android build are not required.
 
@@ -49,7 +53,7 @@ Install Rokid Conversate and its AI helper on the Rokid glasses connected to my 
 Do the executable setup work yourself rather than stopping at instructions.
 
 Project: https://github.com/hardline7/Rokid-Conversate
-Release to install: https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.1
+Release to install: https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.2
 Setup guide: docs/INSTALL.en.md in that repository
 Setup limitations: docs/SETUP-LIMITS.md in that repository
 
@@ -59,8 +63,8 @@ Setup limitations: docs/SETUP-LIMITS.md in that repository
 2. On Windows, prepare Android Platform-Tools and Node.js 20+/npm from their official
    distributors if missing. On another OS, check the guide's verified setup scope;
    do not assume that the Windows scripts work unchanged.
-3. Download Rokid-Conversate-v0.3.1-Windows-Setup.zip and SHA256SUMS.txt
-   from the public v0.3.1 release.
+3. Download Rokid-Conversate-v0.3.2-Windows-Setup.zip and SHA256SUMS.txt
+   from the public v0.3.2 release.
    Verify the ZIP's SHA-256 and fully extract it into a dedicated working folder.
    Do not confuse GitHub's generated Source code ZIP with the setup package.
 4. Run adb devices -l and identify the actual glasses. If multiple devices are
@@ -92,7 +96,7 @@ The meeting app uses local records, Rokid's native STT and Rokid AI.
 No separate external AI API key is needed, but Rokid phone/service connectivity may be.
 ```
 
-This prompt targets the published **v0.3.1 preview** deliberately. It should not silently replace that APK with an arbitrary build of the newer main branch.
+This prompt targets the published **v0.3.2 preview** deliberately. It should not silently replace that APK with an arbitrary build of the newer main branch.
 
 ## What you get
 
@@ -350,7 +354,7 @@ Personal meeting records, runtime tokens, device captures, extracted system APKs
 
 ## Validation and current limits
 
-The project passes **34 JVM tests, Android lint and the APK build**. v0.3.1 includes language hardening and the refreshed lens design. Thirty-six Korean/English states were rendered with actual device fonts and checked for monochrome output and safe-area bounds. Real-device checks cover STT reception; start, pause, resume and end transitions; real AI responses; lens summary display and persistence; HTTPS access; and preservation of existing meeting records. Desktop/mobile browser tests cover full-transcript scrolling, English UI and live Japanese label updates. Real Rokid AI translation responses were checked for Japanese and Spanish.
+The project passes **34 JVM tests, Android lint and the APK build**. v0.3.2 includes language hardening and the refreshed lens design. Thirty-six Korean/English states were rendered with actual device fonts and checked for monochrome output and safe-area bounds. Real-device checks cover STT reception; start, pause, resume and end transitions; real AI responses; lens summary display and persistence; HTTPS access; and preservation of existing meeting records. Desktop/mobile browser tests cover full-transcript scrolling, English UI and live Japanese label updates. Real Rokid AI translation responses were checked for Japanese and Spanish.
 
 The following are still open validation work:
 

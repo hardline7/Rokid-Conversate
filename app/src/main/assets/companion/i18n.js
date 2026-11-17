@@ -14,6 +14,7 @@ function applyLocale() {
 document.addEventListener('DOMContentLoaded', applyLocale);
 // Update app-owned static labels without traversing or translating user content.
 setInterval(async () => {
+  if (document.hidden) return;
   try {
     const response = await fetch('/locale', {cache:'no-store'});
     if (!response.ok) return;
