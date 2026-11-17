@@ -12,6 +12,30 @@ Rokid Conversate는 Rokid Glasses의 기본 음성 인식과 Rokid AI를 연결�
 
 > 현재 버전: **0.3.0-device-language** · Android 네이티브 앱 + 로컬 웹 관리 화면 + Rokid AIUI 도우미 위젯. 독립적인 비공식 프로젝트이며 Even Realities 또는 Rokid의 공식 제품·제휴 앱은 아닙니다. Conversate의 핵심 사용 경험을 Rokid에 재구현한 것으로, 원제품과의 모든 기능·성능 동등성을 주장하지 않습니다.
 
+## 외부 AI API 키 없이, 로컬 앱과 Rokid AI로
+
+**OpenAI·Claude 등 별도 외부 AI API를 직접 호출하지 않습니다. API 키 입력도, 별도 개발자 서버 구축도 필요하지 않습니다.** 안경 내부 앱·암호화 기록·로컬 웹 관리 화면을 바탕으로, 음성 인식과 생성은 Rokid 기본 STT와 Rokid AI를 사용합니다.
+
+여기서 로컬은 앱·기록·관리 화면·도우미 연결을 뜻합니다. 도우미는 Rokid의 공식 호스트 기능을 사용하므로 **API 호출이 전혀 없거나 AI까지 완전 오프라인이라는 뜻은 아닙니다.** Rokid의 폰·클라우드 연결과 서비스 정책은 그대로 적용될 수 있습니다.
+
+## 빌드 없이 바로 설치하기
+
+**[v0.3.0 프리뷰 다운로드](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.0)** · [한국어 설치 안내](docs/INSTALL.ko.md) · [English setup guide](docs/INSTALL.en.md)
+
+| 다운로드 | 용도 |
+|---|---|
+| [Windows Setup ZIP](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.0/Rokid-Conversate-v0.3.0-Windows-Setup.zip) | **권장:** APK + AI 도우미 + 자동 설치 스크립트 + 한영 안내 |
+| [APK](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.0/Rokid-Conversate-v0.3.0.apk) | APK만 직접 설치할 때. AI 도우미는 별도 설치 필요 |
+| [SHA256SUMS.txt](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.0/SHA256SUMS.txt) | 다운로드 파일 검증 |
+
+Windows에서 **ADB와 Node.js 20+**를 준비하고 ZIP을 완전히 푼 뒤 해당 폴더에서 실행합니다. Android Studio·JDK·앱 빌드는 필요 없습니다.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Install-Conversate.ps1
+```
+
+설치기는 APK와 Rokid AI 위젯을 함께 설치합니다. 안경에서 USB 디버깅을 승인하고 폰의 Rokid 연결을 유지하세요. 업데이트 전에는 회의를 종료해야 합니다. 현재 배포물은 도우미 설치 방식에 필요한 **개발/debug 서명 프리뷰 APK**이며, 다른 서명으로 빌드된 앱과의 교체·업데이트는 [서명 안내](docs/INSTALL.ko.md#업데이트와-서명)를 확인하세요.
+
 ## 한눈에 보는 기능
 
 | 기능 | 실제로 할 수 있는 일 |
@@ -100,7 +124,7 @@ STT 연결은 **비공개 인터페이스**를 사용합니다. AI 도우미는 
 - **AI가 잠깐 끊겨도 기록은 계속:** 인식 경로가 살아 있는 동안 자막과 확정 발화 저장은 AI 응답과 독립적으로 동작합니다. STT 자체에는 Rokid 폰 연결이 필요합니다.
 - **다른 언어 사용자도 고려:** 브라우저 언어가 아닌 안경의 실제 언어 설정을 기준으로 UI와 AI 출력을 맞춥니다.
 
-## 설치 전 준비
+## 직접 소스에서 빌드할 때의 준비
 
 현재 실제 검증 장치는 **Rokid RG_glasses, Android 12 계열/API 32**입니다. 모든 Rokid 모델·펌웨어에서 검증된 범용 SDK 앱은 아닙니다.
 
@@ -116,7 +140,7 @@ STT 연결은 **비공개 인터페이스**를 사용합니다. AI 도우미는 
 
 SDK 라이선스는 Android SDK Manager에서 승인해 주세요. 프로젝트의 Gradle Wrapper가 Gradle 8.11.1을 준비합니다.
 
-## 처음부터 설치하기
+## 개발자용: 소스에서 빌드하고 설치하기
 
 ### 1. 소스를 받습니다
 

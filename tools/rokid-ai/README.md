@@ -1,5 +1,10 @@
 # Rokid AI helper
 
+For installation without building, download the Windows Setup ZIP from
+[Releases](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.0) and follow
+[the complete APK + helper guide](../../docs/INSTALL.en.md). The packaged
+`Install-Conversate.ps1` installs both components; this page describes the helper alone.
+
 The Android app delegates live speech-group summaries, term explanations, cues, interface translation and recap generation to an ordinary AIUI agent.
 The helper uses Rokid's documented `LanguageModel` capability. Rokid credentials
 stay inside the host runtime; the APK never obtains them and has no external AI

@@ -1,5 +1,11 @@
 # 구현 및 검증 기록
 
+## v0.3.0 APK 배포 준비 (2026-11-17)
+
+GitHub 릴리스용 개발 서명 APK, APK와 AI 위젯 설치를 묶은 Windows Setup ZIP, SHA256SUMS를 패키징한다. 소스 빌드 없이 ADB·Node.js 20+/npm만으로 설치할 수 있도록 한영 가이드와 설치기를 추가했다. 런타임 토큰·개인 키·장치 데이터·CLI 캐시는 패키지에 넣지 않는다. 도우미 설치가 adb run-as를 사용하므로 현재 배포 APK는 debuggable 개발 빌드다.
+
+설치기 모의 테스트에서 APK와 도우미 연결, 진행 중 인식 차단, 미승인 장치 차단, APK 체크섬 불일치 차단을 확인했다. 별도 새 장치에서 설치기를 처음부터 실제 실행한 것은 아니므로, 이 배포는 프리뷰로 표시한다. 릴리스 노트와 설치 가이드는 docs/releases/v0.3.0.md 및 INSTALL.ko.md/INSTALL.en.md에 있다.
+
 ## 0.3.0 Rokid 기기 언어 연동 (2026-11-17)
 
 versionCode 5 / `0.3.0-device-language`를 연결된 안경에 설치했다. 현재 활성 시스템 언어 `ko-KR`을 Android Configuration에서 읽는다. 공장 기본값 `ro.product.locale=zh-CN`은 사용하지 않는다.

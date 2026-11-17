@@ -12,6 +12,30 @@ The point is to help you stay in the conversation: **glance at a short summary n
 
 > Current version: **0.3.0-device-language**. Native Android app + device-hosted web companion + Rokid AIUI helper widget. This is an independent, unofficial project, not a product or partnership of Even Realities or Rokid. It reimplements the core interaction experience on Rokid and does not claim complete feature or performance parity with the original product.
 
+## No third-party AI API key. Local app + Rokid AI.
+
+**The app does not directly call OpenAI, Claude or another separate third-party AI API. There is no developer API key to enter and no application backend to host.** The native app, encrypted records and web companion live on the glasses; speech recognition and generation use Rokid's built-in STT and Rokid AI.
+
+“Local” describes the app, storage, companion and helper transport. The helper uses Rokid's official host capability, so **this is not a zero-API or fully offline AI claim**. Rokid's phone/cloud connectivity and service policies can still apply.
+
+## Install without building
+
+**[Download the v0.3.0 preview](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.0)** · [English setup guide](docs/INSTALL.en.md) · [한국어 설치 안내](docs/INSTALL.ko.md)
+
+| Download | Purpose |
+|---|---|
+| [Windows Setup ZIP](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.0/Rokid-Conversate-v0.3.0-Windows-Setup.zip) | **Recommended:** APK + AI helper + automatic installer + both language guides |
+| [APK](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.0/Rokid-Conversate-v0.3.0.apk) | Manual APK installation; the AI helper is installed separately |
+| [SHA256SUMS.txt](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.0/SHA256SUMS.txt) | Download checksums |
+
+On Windows, install **ADB and Node.js 20+**, fully extract the ZIP, and run this from its folder. Android Studio, JDK and an Android build are not required.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Install-Conversate.ps1
+```
+
+The installer sets up both the APK and Rokid AI widget. Authorize USB debugging and keep the Rokid phone paired. End meetings before updating. This is a **development/debug-signed preview APK**, required by the current helper setup method. Read the [signing and update notes](docs/INSTALL.en.md#updates-and-signing) before replacing a build signed with a different key.
+
 ## What you get
 
 | Feature | What it does |
@@ -100,7 +124,7 @@ The STT connection uses a **private interface**. The AI helper uses Rokid's **of
 - **AI interruptions do not inherently stop text storage.** While the recognition path remains available, captions and finalized text storage work independently of AI requests. STT itself still depends on the Rokid phone connection.
 - **Language is part of the experience.** The glasses' active language drives the UI and new AI output, instead of forcing everyone into Korean or choosing a different language in the browser.
 
-## Requirements
+## Requirements for building from source
 
 The device verified so far is **Rokid RG_glasses running Android 12 / API 32**. This is not a universal SDK app tested across every Rokid model or firmware.
 
@@ -116,7 +140,7 @@ You will need:
 
 Accept the SDK licenses through Android SDK Manager. The included Gradle Wrapper obtains Gradle 8.11.1.
 
-## Installation, step by step
+## Developer setup: build from source
 
 ### 1. Clone the project
 
