@@ -2,7 +2,7 @@
 
 ### Bringing the Even Realities G2 Conversate experience to Rokid.
 
-[한국어](README.md) · [English](README.en.md)
+[한국어](README.md) · [English](README.en.md) · [Screen gallery](#refreshed-lens-interface)
 
 **Turn your glasses from a transcription display into a companion that helps you understand and remember the conversation.**
 
@@ -111,11 +111,48 @@ This prompt targets the published **v0.3.1 preview** deliberately. It should not
 
 ## Refreshed lens interface
 
-A summary-first layout combines thin outlines, a compact status bar and tabs, a separate term panel and quieter captions. The ready screen groups connectivity and a large pairing PIN. These images use **synthetic fixtures rendered by the production native Canvas with device fonts**, not personal recordings or a real PIN.
+A summary-first layout combines thin outlines, a compact status bar and tabs, a separate term panel and quieter captions. The ready screen groups connectivity and a large pairing PIN.
 
-| Summary · Terms · Captions | Ready · Connect |
-|---|---|
-| ![Refreshed summary view](docs/assets/lens-en-summary.png) | ![Refreshed ready view](docs/assets/lens-en-idle.png) |
+**All 36 generated Korean/English screen examples are included below.** They use synthetic fixtures rendered by the production native Canvas with device fonts, not personal recordings or a real PIN. Expand the galleries for the remaining views.
+
+| View | 한국어 | English |
+|---|---|---|
+| Summary, terms and captions | ![Summary, terms and captions · 한국어](docs/assets/lens-ko-summary.png) | ![Summary, terms and captions · English](docs/assets/lens-en-summary.png) |
+| Ready and connect | ![Ready and connect · 한국어](docs/assets/lens-ko-idle.png) | ![Ready and connect · English](docs/assets/lens-en-idle.png) |
+
+<details>
+<summary>Expand 14 interaction and state screens</summary>
+
+| View | 한국어 | English |
+|---|---|---|
+| Earlier summary | ![Earlier summary · 한국어](docs/assets/lens-ko-history.png) | ![Earlier summary · English](docs/assets/lens-en-history.png) |
+| Captions off | ![Captions off · 한국어](docs/assets/lens-ko-captions-off.png) | ![Captions off · English](docs/assets/lens-en-captions-off.png) |
+| Paused | ![Paused · 한국어](docs/assets/lens-ko-paused.png) | ![Paused · English](docs/assets/lens-en-paused.png) |
+| AI cue and source | ![AI cue and source · 한국어](docs/assets/lens-ko-cue.png) | ![AI cue and source · English](docs/assets/lens-en-cue.png) |
+| Prep notes | ![Prep notes · 한국어](docs/assets/lens-ko-notes.png) | ![Prep notes · English](docs/assets/lens-en-notes.png) |
+| Start confirmation | ![Start confirmation · 한국어](docs/assets/lens-ko-confirm.png) | ![Start confirmation · English](docs/assets/lens-en-confirm.png) |
+| End confirmation | ![End confirmation · 한국어](docs/assets/lens-ko-stop-confirm.png) | ![End confirmation · English](docs/assets/lens-en-stop-confirm.png) |
+
+</details>
+
+<details>
+<summary>Expand 18 waiting, connectivity and text stress-test screens</summary>
+
+| View | 한국어 | English |
+|---|---|---|
+| Waiting for a summary | ![Waiting for a summary · 한국어](docs/assets/lens-ko-empty.png) | ![Waiting for a summary · English](docs/assets/lens-en-empty.png) |
+| Offline indication | ![Offline indication · 한국어](docs/assets/lens-ko-offline.png) | ![Offline indication · English](docs/assets/lens-en-offline.png) |
+| Large text | ![Large text · 한국어](docs/assets/lens-ko-large.png) | ![Large text · English](docs/assets/lens-en-large.png) |
+| Maximum-length summary and term | ![Maximum-length summary and term · 한국어](docs/assets/lens-ko-long.png) | ![Maximum-length summary and term · English](docs/assets/lens-en-long.png) |
+| Cue without summaries | ![Cue without summaries · 한국어](docs/assets/lens-ko-cue-only.png) | ![Cue without summaries · English](docs/assets/lens-en-cue-only.png) |
+| Cue with captions off | ![Cue with captions off · 한국어](docs/assets/lens-ko-cue-only-captions-off.png) | ![Cue with captions off · English](docs/assets/lens-en-cue-only-captions-off.png) |
+| No notes selected | ![No notes selected · 한국어](docs/assets/lens-ko-empty-notes.png) | ![No notes selected · English](docs/assets/lens-en-empty-notes.png) |
+| No cues yet | ![No cues yet · 한국어](docs/assets/lens-ko-empty-cues.png) | ![No cues yet · English](docs/assets/lens-en-empty-cues.png) |
+| Long notes page | ![Long notes page · 한국어](docs/assets/lens-ko-long-notes.png) | ![Long notes page · English](docs/assets/lens-en-long-notes.png) |
+
+Repeated characters in the maximum-length views intentionally test wrapping and clipping.
+
+</details>
 
 [Design and native rendering checks](docs/LENS-DESIGN.md)
 

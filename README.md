@@ -2,7 +2,7 @@
 
 ### Even Realities G2 Conversate의 대화 보조 경험을, 이제 Rokid에서도.
 
-[한국어](README.md) · [English](README.en.md)
+[한국어](README.md) · [English](README.en.md) · [화면 갤러리](#새-안경-화면)
 
 **말을 받아 적는 안경에서, 대화를 이해하고 기억하도록 돕는 안경으로.**
 
@@ -106,11 +106,48 @@ PC에서 터미널 명령을 실행할 수 있는 **Codex, Claude Code 같은 AI
 
 ## 새 안경 화면
 
-요약을 중심으로 얇은 라인, 작은 상태바와 탭, 별도 용어 영역, 밝기를 낮춘 하단 자막을 배치했습니다. 대기 화면에는 연결 상태와 큰 PIN을 표시합니다. 아래는 **예시 데이터와 기기 폰트로 실제 네이티브 Canvas를 렌더링한 이미지**이며, 개인 회의나 실제 PIN이 아닙니다.
+요약을 중심으로 얇은 라인, 작은 상태바와 탭, 별도 용어 영역, 밝기를 낮춘 하단 자막을 배치했습니다. 대기 화면에는 연결 상태와 큰 PIN을 표시합니다.
 
-| 요약 · 용어 · 자막 | 회의 준비 · 연결 |
-|---|---|
-| ![새 요약 화면](docs/assets/lens-ko-summary.png) | ![새 대기 화면](docs/assets/lens-ko-idle.png) |
+**생성한 한국어·영어 화면 예시 36장을 모두 아래에 담았습니다.** 예시 데이터와 기기 폰트로 실제 네이티브 Canvas를 렌더링한 이미지이며 개인 회의나 실제 PIN이 아닙니다. 추가 화면은 펼쳐서 볼 수 있습니다.
+
+| 화면 | 한국어 | English |
+|---|---|---|
+| 요약 · 용어 · 자막 | ![요약 · 용어 · 자막 · 한국어](docs/assets/lens-ko-summary.png) | ![요약 · 용어 · 자막 · English](docs/assets/lens-en-summary.png) |
+| 회의 준비 · 연결 | ![회의 준비 · 연결 · 한국어](docs/assets/lens-ko-idle.png) | ![회의 준비 · 연결 · English](docs/assets/lens-en-idle.png) |
+
+<details>
+<summary>조작·상태별 화면 14장 펼치기</summary>
+
+| 화면 | 한국어 | English |
+|---|---|---|
+| 이전 요약 보기 | ![이전 요약 보기 · 한국어](docs/assets/lens-ko-history.png) | ![이전 요약 보기 · English](docs/assets/lens-en-history.png) |
+| 실시간 자막 끄기 | ![실시간 자막 끄기 · 한국어](docs/assets/lens-ko-captions-off.png) | ![실시간 자막 끄기 · English](docs/assets/lens-en-captions-off.png) |
+| 일시정지 | ![일시정지 · 한국어](docs/assets/lens-ko-paused.png) | ![일시정지 · English](docs/assets/lens-en-paused.png) |
+| AI Cue · 자료 출처 | ![AI Cue · 자료 출처 · 한국어](docs/assets/lens-ko-cue.png) | ![AI Cue · 자료 출처 · English](docs/assets/lens-en-cue.png) |
+| 사전 자료 | ![사전 자료 · 한국어](docs/assets/lens-ko-notes.png) | ![사전 자료 · English](docs/assets/lens-en-notes.png) |
+| 회의 시작 확인 | ![회의 시작 확인 · 한국어](docs/assets/lens-ko-confirm.png) | ![회의 시작 확인 · English](docs/assets/lens-en-confirm.png) |
+| 회의 종료 확인 | ![회의 종료 확인 · 한국어](docs/assets/lens-ko-stop-confirm.png) | ![회의 종료 확인 · English](docs/assets/lens-en-stop-confirm.png) |
+
+</details>
+
+<details>
+<summary>대기·연결·큰 글자·최대 길이 검증 화면 18장 펼치기</summary>
+
+| 화면 | 한국어 | English |
+|---|---|---|
+| 요약 대기 | ![요약 대기 · 한국어](docs/assets/lens-ko-empty.png) | ![요약 대기 · English](docs/assets/lens-en-empty.png) |
+| 인터넷 연결 확인 | ![인터넷 연결 확인 · 한국어](docs/assets/lens-ko-offline.png) | ![인터넷 연결 확인 · English](docs/assets/lens-en-offline.png) |
+| 큰 글자 | ![큰 글자 · 한국어](docs/assets/lens-ko-large.png) | ![큰 글자 · English](docs/assets/lens-en-large.png) |
+| 최대 길이 요약·용어 | ![최대 길이 요약·용어 · 한국어](docs/assets/lens-ko-long.png) | ![최대 길이 요약·용어 · English](docs/assets/lens-en-long.png) |
+| 요약 없이 Cue 표시 | ![요약 없이 Cue 표시 · 한국어](docs/assets/lens-ko-cue-only.png) | ![요약 없이 Cue 표시 · English](docs/assets/lens-en-cue-only.png) |
+| Cue만 표시 | ![Cue만 표시 · 한국어](docs/assets/lens-ko-cue-only-captions-off.png) | ![Cue만 표시 · English](docs/assets/lens-en-cue-only-captions-off.png) |
+| 선택 자료 없음 | ![선택 자료 없음 · 한국어](docs/assets/lens-ko-empty-notes.png) | ![선택 자료 없음 · English](docs/assets/lens-en-empty-notes.png) |
+| 아직 Cue 없음 | ![아직 Cue 없음 · 한국어](docs/assets/lens-ko-empty-cues.png) | ![아직 Cue 없음 · English](docs/assets/lens-en-empty-cues.png) |
+| 긴 자료 페이지 | ![긴 자료 페이지 · 한국어](docs/assets/lens-ko-long-notes.png) | ![긴 자료 페이지 · English](docs/assets/lens-en-long-notes.png) |
+
+최대 길이 검증 화면의 반복 글자는 줄바꿈과 잘림을 확인하기 위한 테스트 데이터입니다.
+
+</details>
 
 [디자인과 렌더링 검증 방법](docs/LENS-DESIGN.md)
 
