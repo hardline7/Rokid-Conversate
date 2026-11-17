@@ -121,11 +121,11 @@ SDK 라이선스는 Android SDK Manager에서 승인해 주세요. 프로젝트�
 ### 1. 소스를 받습니다
 
 ```powershell
-git clone https://git.tla.so/erickim/rokid.git
-cd rokid
+git clone https://github.com/hardline7/Rokid-Conversate.git
+cd Rokid-Conversate
 ```
 
-저장소 접근 권한이 필요하면 Forgejo 계정으로 인증합니다. 토큰을 소스나 remote URL에 넣어 저장하지 마세요.
+공개 저장소이므로 인증 없이 소스를 받을 수 있습니다. 변경 사항을 푸시하려면 GitHub 쓰기 권한이 필요합니다. 토큰을 소스나 remote URL에 넣어 저장하지 마세요.
 
 ### 2. Android SDK 위치를 지정합니다
 

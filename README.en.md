@@ -121,11 +121,11 @@ Accept the SDK licenses through Android SDK Manager. The included Gradle Wrapper
 ### 1. Clone the project
 
 ```powershell
-git clone https://git.tla.so/erickim/rokid.git
-cd rokid
+git clone https://github.com/hardline7/Rokid-Conversate.git
+cd Rokid-Conversate
 ```
 
-Authenticate with your Forgejo account if repository access requires it. Do not put a personal access token into the source tree or a saved remote URL.
+This public repository can be cloned without authentication. Pushing changes requires GitHub write access. Do not put a personal access token into the source tree or a saved remote URL.
 
 ### 2. Point the build at your Android SDK
 
