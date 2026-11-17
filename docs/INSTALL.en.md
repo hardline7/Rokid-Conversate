@@ -6,12 +6,12 @@
 
 ## Downloads
 
-Open the Assets section of the [v0.3.0 release](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.0).
+Open the Assets section of the [v0.3.1 release](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.1).
 
 | File | Purpose |
 |---|---|
-| `Rokid-Conversate-v0.3.0-Windows-Setup.zip` | Recommended. APK, helper sources, automatic installer and both language guides. |
-| `Rokid-Conversate-v0.3.0.apk` | Standalone APK for manual installation. Does not install the AI widget by itself. |
+| `Rokid-Conversate-v0.3.1-Windows-Setup.zip` | Recommended. APK, helper sources, automatic installer and both language guides. |
+| `Rokid-Conversate-v0.3.1.apk` | Standalone APK for manual installation. Does not install the AI widget by itself. |
 | `SHA256SUMS.txt` | SHA-256 checksums for the APK and setup ZIP. |
 
 Choose **Windows-Setup.zip**, rather than GitHub's automatically generated Source code ZIP, to get the APK and packaged installer together.
@@ -73,7 +73,7 @@ The default lens view shows speech-group summaries near the top. Swipe for previ
 ## Manual APK installation
 
 ```powershell
-adb install -r .\Rokid-Conversate-v0.3.0.apk
+adb install -r .\Rokid-Conversate-v0.3.1.apk
 adb shell am start -W -n app.conversate.glass/.meeting.MeetingActivity
 ```
 

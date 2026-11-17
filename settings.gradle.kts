@@ -14,3 +14,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "rokid-conversate"
 include(":app")
+if (providers.gradleProperty("lensPreview").orNull == "true") include(":lens-preview")

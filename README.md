@@ -10,7 +10,7 @@ Rokid Conversate는 Rokid Glasses의 기본 음성 인식과 Rokid AI를 연결�
 
 핵심은 자막을 계속 읽게 만드는 것이 아닙니다. **대화에 집중하면서 상단의 짧은 요약을 확인하고, 놓친 흐름은 안경테를 쓸어 다시 읽는 것**입니다. 실시간 전사는 필요할 때 켜고 끌 수 있습니다.
 
-> 현재 버전: **0.3.0-device-language** · Android 네이티브 앱 + 로컬 웹 관리 화면 + Rokid AIUI 도우미 위젯. 독립적인 비공식 프로젝트이며 Even Realities 또는 Rokid의 공식 제품·제휴 앱은 아닙니다. Conversate의 핵심 사용 경험을 Rokid에 재구현한 것으로, 원제품과의 모든 기능·성능 동등성을 주장하지 않습니다.
+> 현재 버전: **0.3.1-lens** · Android 네이티브 앱 + 로컬 웹 관리 화면 + Rokid AIUI 도우미 위젯. 독립적인 비공식 프로젝트이며 Even Realities 또는 Rokid의 공식 제품·제휴 앱은 아닙니다. Conversate의 핵심 사용 경험을 Rokid에 재구현한 것으로, 원제품과의 모든 기능·성능 동등성을 주장하지 않습니다.
 
 ## 외부 AI API 키 없이, 로컬 앱과 Rokid AI로
 
@@ -22,13 +22,13 @@ Rokid Conversate는 Rokid Glasses의 기본 음성 인식과 Rokid AI를 연결�
 
 ## 빌드 없이 바로 설치하기
 
-**[v0.3.0 프리뷰 다운로드](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.0)** · [한국어 설치 안내](docs/INSTALL.ko.md) · [English setup guide](docs/INSTALL.en.md)
+**[v0.3.1 프리뷰 다운로드](https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.1)** · [한국어 설치 안내](docs/INSTALL.ko.md) · [English setup guide](docs/INSTALL.en.md)
 
 | 다운로드 | 용도 |
 |---|---|
-| [Windows Setup ZIP](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.0/Rokid-Conversate-v0.3.0-Windows-Setup.zip) | **권장:** APK + AI 도우미 + 자동 설치 스크립트 + 한영 안내 |
-| [APK](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.0/Rokid-Conversate-v0.3.0.apk) | APK만 직접 설치할 때. AI 도우미는 별도 설치 필요 |
-| [SHA256SUMS.txt](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.0/SHA256SUMS.txt) | 다운로드 파일 검증 |
+| [Windows Setup ZIP](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.1/Rokid-Conversate-v0.3.1-Windows-Setup.zip) | **권장:** APK + AI 도우미 + 자동 설치 스크립트 + 한영 안내 |
+| [APK](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.1/Rokid-Conversate-v0.3.1.apk) | APK만 직접 설치할 때. AI 도우미는 별도 설치 필요 |
+| [SHA256SUMS.txt](https://github.com/hardline7/Rokid-Conversate/releases/download/v0.3.1/SHA256SUMS.txt) | 다운로드 파일 검증 |
 
 Windows에서 **ADB와 Node.js 20+**를 준비하고 ZIP을 완전히 푼 뒤 해당 폴더에서 실행합니다. Android Studio·JDK·앱 빌드는 필요 없습니다.
 
@@ -49,7 +49,7 @@ PC에서 터미널 명령을 실행할 수 있는 **Codex, Claude Code 같은 AI
 설치 방법만 설명하고 끝내지 말고, 실행 가능한 작업은 직접 진행해 줘.
 
 프로젝트: https://github.com/hardline7/Rokid-Conversate
-설치할 배포본: https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.0
+설치할 배포본: https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.1
 설치 안내: 저장소의 docs/INSTALL.ko.md
 설치 한계: 저장소의 docs/SETUP-LIMITS.md
 
@@ -59,7 +59,7 @@ PC에서 터미널 명령을 실행할 수 있는 **Codex, Claude Code 같은 AI
 2. Windows라면 ADB Platform-Tools와 Node.js 20+/npm이 없을 때 공식 배포처에서
    필요한 도구만 준비해 줘. 다른 OS라면 설치 가이드의 검증 범위를 확인하고,
    Windows 전용 스크립트가 그대로 동작한다고 가정하지 마.
-3. 공개 v0.3.0 릴리스의 Rokid-Conversate-v0.3.0-Windows-Setup.zip과
+3. 공개 v0.3.1 릴리스의 Rokid-Conversate-v0.3.1-Windows-Setup.zip과
    SHA256SUMS.txt를 받아
    ZIP의 SHA-256을 확인한 뒤 별도의 작업 폴더에 완전히 풀어.
    GitHub의 자동 생성 Source code ZIP을 설치 패키지로 착각하지 마.
@@ -87,7 +87,7 @@ PC에서 터미널 명령을 실행할 수 있는 **Codex, Claude Code 같은 AI
 별도 외부 AI API 키는 없지만 Rokid 자체 폰·서비스 통신은 필요할 수 있어.
 ```
 
-이 설치 프롬프트는 현재 공개된 **v0.3.0 프리뷰**를 대상으로 합니다. 최신 main 소스를 임의로 빌드해 배포 APK 대신 설치하지 않도록 버전을 고정했습니다.
+이 설치 프롬프트는 현재 공개된 **v0.3.1 프리뷰**를 대상으로 합니다. 최신 main 소스를 임의로 빌드해 배포 APK 대신 설치하지 않도록 버전을 고정했습니다.
 
 ## 한눈에 보는 기능
 
@@ -103,6 +103,16 @@ PC에서 터미널 명령을 실행할 수 있는 **Codex, Claude Code 같은 AI
 | **회의 기록과 리캡** | 발화 묶음, 전체 요약, Cue, 전체 전사를 보관하고 검색·Markdown 내보내기를 지원합니다. |
 | **Rokid 언어 연동** | 안경·웹·새 AI 출력이 안경의 현재 시스템 언어를 따릅니다. |
 | **암호화 저장** | 회의 전사·자료·설정은 Android Keystore 기반 AES-GCM으로 안경 내부에 보관합니다. |
+
+## 새 안경 화면
+
+요약을 중심으로 얇은 라인, 작은 상태바와 탭, 별도 용어 영역, 밝기를 낮춘 하단 자막을 배치했습니다. 대기 화면에는 연결 상태와 큰 PIN을 표시합니다. 아래는 **예시 데이터와 기기 폰트로 실제 네이티브 Canvas를 렌더링한 이미지**이며, 개인 회의나 실제 PIN이 아닙니다.
+
+| 요약 · 용어 · 자막 | 회의 준비 · 연결 |
+|---|---|
+| ![새 요약 화면](docs/assets/lens-ko-summary.png) | ![새 대기 화면](docs/assets/lens-ko-idle.png) |
+
+[디자인과 렌더링 검증 방법](docs/LENS-DESIGN.md)
 
 ## 이 앱을 만든 이유
 
@@ -298,7 +308,7 @@ PIN은 서비스가 다시 시작되면 바뀝니다. README에 고정 PIN은 �
 
 ## 검증 상태
 
-현재 main 소스는 **34개 JVM 테스트와 Android lint·빌드**를 통과했습니다. v0.3.0 배포 당시의 테스트는 29개였으며, 이후 소스에 언어 분류 보완과 카탈로그 회귀 검사를 추가했습니다. 이 후속 수정은 아직 배포 APK에 포함하지 않았습니다. 실제 장치에서 STT 수신, 시작·일시정지·재개·종료, AI 응답, 상단 요약 표시·저장, HTTPS 관리와 기존 기록 보존을 확인했습니다. 웹은 PC·모바일에서 전체 전사 스크롤, 영어 UI와 일본어 문구 갱신을 검사했습니다. 실제 Rokid AI의 일본어·스페인어 번역 응답도 확인했습니다.
+현재 **34개 JVM 테스트와 Android lint·빌드**를 통과했습니다. v0.3.1은 언어 처리 보완과 새 렌즈 디자인을 포함합니다. 실제 장치의 폰트로 한국어·영어 36가지 상태를 렌더링하고 단색·안전 영역을 검사했습니다. 실제 장치에서 STT 수신, 시작·일시정지·재개·종료, AI 응답, 상단 요약 표시·저장, HTTPS 관리와 기존 기록 보존을 확인했습니다. 웹은 PC·모바일에서 전체 전사 스크롤, 영어 UI와 일본어 문구 갱신을 검사했습니다. 실제 Rokid AI의 일본어·스페인어 번역 응답도 확인했습니다.
 
 다음 항목까지 완료한 것은 아닙니다.
 

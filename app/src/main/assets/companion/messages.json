@@ -314,5 +314,13 @@
   "Summary": "Summary",
   "Cue List": "Cue List",
   "Transcription": "Transcription",
-  "AI Cue": "AI Cue"
+  "AI Cue": "AI Cue",
+  "준비되면 탭하여 시작하세요": "Tap when you are ready",
+  "음성 인식": "Speech",
+  "연결됨": "Connected",
+  "연결 대기": "Waiting",
+  "대화가 정리되면 여기에 표시됩니다.": "Your next summary will appear here.",
+  "용어": "Term",
+  "자료 {0}/{1}": "Note {0}/{1}",
+  "탭하여 Cue와 자료 보기": "Tap for cues and notes"
 }
