@@ -38,6 +38,57 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Install-Conversate.ps1
 
 설치기는 APK와 Rokid AI 위젯을 함께 설치합니다. 안경에서 USB 디버깅을 승인하고 폰의 Rokid 연결을 유지하세요. 업데이트 전에는 회의를 종료해야 합니다. 현재 배포물은 도우미 설치 방식에 필요한 **개발/debug 서명 프리뷰 APK**이며, 다른 서명으로 빌드된 앱과의 교체·업데이트는 [서명 안내](docs/INSTALL.ko.md#업데이트와-서명)를 확인하세요.
 
+## Codex·Claude Code에게 설치를 맡기기
+
+PC에서 터미널 명령을 실행할 수 있는 **Codex, Claude Code 같은 AI 코딩 도구**에 아래 내용을 통째로 복사해 넣으세요. 안경은 USB 데이터 케이블로 연결하고 폰의 Rokid 앱과 페어링해 두면 됩니다. USB 디버깅 승인처럼 사람이 해야 하는 단계는 AI의 안내에 따라 진행하세요.
+
+이 프롬프트는 AI가 PC의 ADB·Node.js 준비부터 설치·확인까지 돕도록 요청합니다. **APK만으로 설치되는 기능을 새로 만드는 것은 아니며**, 설치를 돕는 AI와 회의 앱이 사용하는 Rokid AI는 별개입니다.
+
+```text
+내 PC에 USB로 연결한 Rokid 안경에 Rokid Conversate와 AI 도우미를 설치해 줘.
+설치 방법만 설명하고 끝내지 말고, 실행 가능한 작업은 직접 진행해 줘.
+
+프로젝트: https://github.com/hardline7/Rokid-Conversate
+설치할 배포본: https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.0
+설치 안내: 저장소의 docs/INSTALL.ko.md
+설치 한계: 저장소의 docs/SETUP-LIMITS.md
+
+1. 먼저 운영체제와 현재 PC 환경, ADB, Node.js/npm, 연결된 장치를 확인해.
+   기본 경로는 공개 릴리스 APK를 설치하는 방식이야. 앱을 직접 빌드하거나
+   Android Studio·전체 Android SDK·JDK를 불필요하게 설치하지 마.
+2. Windows라면 ADB Platform-Tools와 Node.js 20+/npm이 없을 때 공식 배포처에서
+   필요한 도구만 준비해 줘. 다른 OS라면 설치 가이드의 검증 범위를 확인하고,
+   Windows 전용 스크립트가 그대로 동작한다고 가정하지 마.
+3. 공개 v0.3.0 릴리스의 Rokid-Conversate-v0.3.0-Windows-Setup.zip과
+   SHA256SUMS.txt를 받아
+   ZIP의 SHA-256을 확인한 뒤 별도의 작업 폴더에 완전히 풀어.
+   GitHub의 자동 생성 Source code ZIP을 설치 패키지로 착각하지 마.
+4. adb devices -l로 실제 안경을 식별해. 여러 장치가 있으면 아무 장치나 고르지 말고
+   대상 안경을 확인해. USB 디버깅 승인이 필요하면 내가 할 동작만 짧게 알려 줘.
+5. 진행 중인 회의는 중단하거나 강제 종료하지 마. 기존 회의가 끝난 것을 확인한 뒤
+   설치해. 앱 삭제, 데이터 초기화, 루팅, 시스템 서명·권한 제한 우회는 하지 마.
+   서명 불일치가 나오면 중단하고 기록 내보내기와 해결 방법을 설명해.
+6. Windows에서는 압축을 푼 폴더의 설치기와 안내를 확인한 뒤 실행해.
+   다른 OS에서는 이 Windows 명령을 무작정 실행하지 말고, 해당 OS의 공식 CLI
+   절차와 지원 범위를 확인한 뒤 진행해. Windows 명령은 다음과 같아:
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Install-Conversate.ps1 -Serial <확인한-장치-ID>
+   이 절차는 APK와 Rokid AI 위젯을 설치하고 개발자 모드를 활성화해.
+7. 회의 앱에 OpenAI·Claude 등의 외부 AI 공급자나 API 키를 추가하지 마.
+   공개 릴리스 다운로드에 GitHub 토큰도 필요 없어. Rokid 계정 자격증명이나
+   앱의 로컬 연결 비밀값, 회의 전사를 출력·업로드하지 말고 제공된 설치기를 사용해.
+8. 설치 후 앱 실행, 도우미 연결, 실제 AI 연결 상태를 확인해.
+   테스트가 필요하면 회의가 없는 상태에서 앱의 합성 질문 연결 테스트를 사용해.
+   실제 회의 녹취는 자동으로 시작하지 마. 안경 착용이나 화면 승인이 필요하면 알려 줘.
+9. 마지막으로 설치 버전, 성공한 확인 항목과 남은 문제를 보고해.
+   같은 네트워크에서 안경에 표시된 HTTPS 주소와 현재 PIN으로 웹에 연결하는 법,
+   다음에 앱을 여는 방법도 알려 줘. 명령 성공만으로 AI까지 연결됐다고 단정하지 마.
+
+이 앱은 로컬 기록과 Rokid 기본 STT·Rokid AI를 사용해.
+별도 외부 AI API 키는 없지만 Rokid 자체 폰·서비스 통신은 필요할 수 있어.
+```
+
+이 설치 프롬프트는 현재 공개된 **v0.3.0 프리뷰**를 대상으로 합니다. 최신 main 소스를 임의로 빌드해 배포 APK 대신 설치하지 않도록 버전을 고정했습니다.
+
 ## 한눈에 보는 기능
 
 | 기능 | 실제로 할 수 있는 일 |

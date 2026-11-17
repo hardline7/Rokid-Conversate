@@ -38,6 +38,62 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Install-Conversate.ps1
 
 The installer sets up both the APK and Rokid AI widget. Authorize USB debugging and keep the Rokid phone paired. End meetings before updating. This is a **development/debug-signed preview APK**, required by the current helper setup method. Read the [signing and update notes](docs/INSTALL.en.md#updates-and-signing) before replacing a build signed with a different key.
 
+## Ask Codex or Claude Code to install it
+
+Copy the entire prompt below into an **AI coding tool with terminal access on your PC**, such as Codex or Claude Code. Connect the glasses with a USB data cable and keep them paired with the Rokid phone app. Follow the assistant's instructions for physical actions such as approving USB debugging.
+
+The prompt asks the assistant to prepare ADB/Node.js, install and verify both components. **It does not turn this into APK-only setup.** The AI helping with installation is separate from the Rokid AI used by the meeting app.
+
+```text
+Install Rokid Conversate and its AI helper on the Rokid glasses connected to my PC by USB.
+Do the executable setup work yourself rather than stopping at instructions.
+
+Project: https://github.com/hardline7/Rokid-Conversate
+Release to install: https://github.com/hardline7/Rokid-Conversate/releases/tag/v0.3.0
+Setup guide: docs/INSTALL.en.md in that repository
+Setup limitations: docs/SETUP-LIMITS.md in that repository
+
+1. Inspect my operating system, existing tools, ADB, Node.js/npm and attached devices.
+   Use the published APK by default. Do not build the app or install Android Studio,
+   the full Android SDK or a JDK unnecessarily.
+2. On Windows, prepare Android Platform-Tools and Node.js 20+/npm from their official
+   distributors if missing. On another OS, check the guide's verified setup scope;
+   do not assume that the Windows scripts work unchanged.
+3. Download Rokid-Conversate-v0.3.0-Windows-Setup.zip and SHA256SUMS.txt
+   from the public v0.3.0 release.
+   Verify the ZIP's SHA-256 and fully extract it into a dedicated working folder.
+   Do not confuse GitHub's generated Source code ZIP with the setup package.
+4. Run adb devices -l and identify the actual glasses. If multiple devices are
+   present, confirm the target instead of choosing arbitrarily. Tell me briefly
+   what to do if a USB debugging authorization prompt requires my action.
+5. Do not interrupt or force-stop an active meeting. Confirm that existing meetings
+   have ended before installing. Do not uninstall, wipe data, root the device,
+   change system signatures or bypass permission restrictions. On a signing
+   mismatch, stop and explain record export and the available recovery options.
+6. On Windows, inspect the extracted installer and guide, then run it below for
+   the confirmed device. On another OS, check the official CLI procedure and
+   supported setup scope instead of blindly running this Windows command:
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Install-Conversate.ps1 -Serial <confirmed-device-id>
+   This installs the APK and Rokid AI widget and enables Developer Mode.
+7. Do not add OpenAI, Claude or another external AI provider or API key to the app.
+   Public release downloads do not need a GitHub token. Do not print or upload
+   Rokid credentials, the app's local connection secret or meeting transcripts;
+   use the supplied installer to handle the local connection.
+8. Verify app launch, helper connectivity and actual AI availability. If a test is
+   needed, use the app's synthetic connection test while no meeting is active.
+   Do not automatically start a real recording. Tell me if wearing the glasses
+   or approving something on the device is required.
+9. Report the installed version, checks that passed and any remaining issues.
+   Explain how to open the displayed HTTPS address from the same network, use
+   the current PIN on the glasses and reopen the app next time. Do not infer
+   successful AI connectivity merely from a successful installation command.
+
+The meeting app uses local records, Rokid's native STT and Rokid AI.
+No separate external AI API key is needed, but Rokid phone/service connectivity may be.
+```
+
+This prompt targets the published **v0.3.0 preview** deliberately. It should not silently replace that APK with an arbitrary build of the newer main branch.
+
 ## What you get
 
 | Feature | What it does |
