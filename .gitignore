@@ -1,0 +1,38 @@
+.gradle/
+build/
+local.properties
+*.apk
+.idea/
+tools/gradle-*/
+tools/out/
+tools/rokid-stt/apks/
+tools/rokid-stt/*.jar
+tools/rokid-stt/sdk-downloads/
+tools/android-sdk/
+tools/rokid-ai/cli/
+tools/rokid-ai/build/
+tools/rokid-ai/**/node_modules/
+tools/rokid-ai/**/*.so
+
+# Local caches, secrets and signing material
+.kotlin/
+node_modules/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+*.aab
+
+# Device captures, firmware extracts and third-party packaged artifacts
+# Keep only the authored app, helper, tools and documentation in Git.
+tools/rokid-stt/
+tools/rokid-ai/*-research/
+tools/rokid-ai/*.json
+tools/rokid-ai/*.aix
+*.wav

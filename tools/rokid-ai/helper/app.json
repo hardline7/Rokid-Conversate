@@ -1,0 +1,15 @@
+{
+  "name": "Conversate AI",
+  "description": "Personal meeting assistant using the host Rokid language model.",
+  "engine": ">=0.17.0",
+  "permissions": ["INTERNET"],
+  "pages": ["pages/bridge/index", "pages/cleanup/index"],
+  "widgets": [{
+    "path": "widgets/bridge/index",
+    "family": "1x1",
+    "placement": "overlay",
+    "displayName": "Conversate AI",
+    "description": "Connects Conversate meetings to the host-provided Rokid language model."
+  }],
+  "window": { "navigationBarTitleText": "Conversate AI", "viewport": { "width": "device-width" } }
+}
